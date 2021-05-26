@@ -1,5 +1,7 @@
 plugins {
-    kotlin("jvm") version "1.5.10"
+    val kotlinVersion = "1.5.10"
+    kotlin("jvm") version kotlinVersion
+    kotlin("kapt") version kotlinVersion
     id("com.github.johnrengelman.shadow") version "6.1.0"
 }
 
@@ -11,8 +13,15 @@ repositories {
 }
 
 dependencies {
+    // kotlin
     implementation(kotlin("stdlib"))
 
+    // cli-specific
+    val picoCliVersion = "4.6.1"
+    implementation("info.picocli:picocli:$picoCliVersion")
+    kapt("info.picocli:picocli-codegen:$picoCliVersion")
+
+    // search engine
     implementation("org.apache.lucene:lucene-core:8.8.2")
 
     testImplementation("io.strikt:strikt-core:0.31.0")
@@ -32,5 +41,11 @@ tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar>().con
     archiveBaseName.set(project.name)
     manifest {
         attributes["Main-Class"] = "ApplicationKt"
+    }
+}
+
+kapt {
+    arguments {
+        arg("project", "${project.group}/${project.name}")
     }
 }
