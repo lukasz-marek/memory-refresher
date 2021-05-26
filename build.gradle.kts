@@ -14,7 +14,9 @@ repositories {
 
 dependencies {
     // kotlin
-    implementation(kotlin("stdlib-jdk8"))
+    val kotlinVersion = "1.5.10"
+    implementation(kotlin("stdlib-jdk8:$kotlinVersion"))
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.0")
 
     // cli-specific
     val picoCliVersion = "4.6.1"
