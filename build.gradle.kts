@@ -14,7 +14,7 @@ repositories {
 
 dependencies {
     // kotlin
-    implementation(kotlin("stdlib"))
+    implementation(kotlin("stdlib-jdk8"))
 
     // cli-specific
     val picoCliVersion = "4.6.1"
