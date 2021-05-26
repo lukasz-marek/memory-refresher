@@ -1,3 +1,4 @@
 fun main() {
-    println("Hello world!")
+    val homeDir = System.getProperty("user.home")
+    println("Hello $homeDir!")
 }
