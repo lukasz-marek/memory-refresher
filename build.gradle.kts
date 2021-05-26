@@ -44,7 +44,7 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach 
 tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar>().configureEach {
     archiveBaseName.set(project.name)
     manifest {
-        attributes["Main-Class"] = "ApplicationKt"
+        attributes["Main-Class"] = "MainKt"
     }
 }
 
