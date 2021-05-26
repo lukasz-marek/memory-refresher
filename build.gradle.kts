@@ -26,8 +26,10 @@ dependencies {
     // search engine
     implementation("org.apache.lucene:lucene-core:8.8.2")
 
+    // tests
     testImplementation("io.strikt:strikt-core:0.31.0")
     testImplementation("io.mockk:mockk:1.10.6")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.5.0")
 }
 
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
