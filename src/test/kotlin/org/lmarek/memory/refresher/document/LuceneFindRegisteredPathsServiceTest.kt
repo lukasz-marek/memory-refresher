@@ -52,7 +52,7 @@ class LuceneFindRegisteredPathsServiceTest {
     }
 
     @Test
-    fun `should return empty list for unmatched document`(){
+    fun `should return empty list for unmatched document`() {
         // given
         registerDocumentService.register(Document("/unmatched", ""))
         val indexSearcher = IndexSearcher(createIndexReader(tempDir))
@@ -64,5 +64,42 @@ class LuceneFindRegisteredPathsServiceTest {
 
         // then
         expectThat(results).isEmpty()
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 21, 27, 33, 37, 49, 91, 99])
+    fun `should return some out of 100 existing unique documents`(count: Int) {
+        // given
+        for (i in 1..100) {
+            registerDocumentService.register(Document("/document_$i", "match"))
+        }
+        val indexSearcher = IndexSearcher(createIndexReader(tempDir))
+        val tested = LuceneFindRegisteredPathsService(createAnalyzer(), indexSearcher)
+        val query = DocumentQuery("match", count)
+
+        // when
+        val results = tested.findMatching(query)
+
+        // then
+        expectThat(results).hasSize(count)
+            .and { get { toSet() }.hasSize(count) }
+    }
+
+    @Test
+    fun `shouldn't fail when there are fewer documents than requested`() {
+        // given
+        for (i in 1..5) {
+            registerDocumentService.register(Document("/document_$i", "match"))
+        }
+        val indexSearcher = IndexSearcher(createIndexReader(tempDir))
+        val tested = LuceneFindRegisteredPathsService(createAnalyzer(), indexSearcher)
+        val query = DocumentQuery("match", 100)
+
+        // when
+        val results = tested.findMatching(query)
+
+        // then
+        expectThat(results).hasSize(5)
+            .and { get { toSet() }.hasSize(5) }
     }
 }
