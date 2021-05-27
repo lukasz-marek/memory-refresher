@@ -5,6 +5,7 @@ import org.apache.lucene.queryparser.classic.QueryParser
 import org.apache.lucene.search.IndexSearcher
 import org.apache.lucene.search.Query
 import org.apache.lucene.search.ScoreDoc
+import org.apache.lucene.search.TopDocs
 import kotlin.math.min
 
 private const val PATH_FIELD = "path"
@@ -22,18 +23,41 @@ class LuceneFindRegisteredPathsService(
         val firstPage = indexSearcher.search(luceneQuery, min(resultsPerPage, query.maxResults))
         val results = mutableListOf<ScoreDoc>()
         results.addAll(firstPage.scoreDocs)
-        if (firstPage.totalHits.value > firstPage.scoreDocs.size && firstPage.scoreDocs.size < query.maxResults) {
-            var remaining = query.maxResults - firstPage.scoreDocs.size
-            var previousPage = firstPage.scoreDocs
-            while (remaining > 0 && previousPage.isNotEmpty()) {
-                val limit = min(resultsPerPage, remaining)
-                val nextPage = fetchMore(previousPage.last(), luceneQuery, limit)
-                results.addAll(nextPage)
-                remaining -= nextPage.size
-                previousPage = nextPage
-            }
+
+        if (shouldFetchMultiplePages(firstPage, query)) {
+            val remaining = query.maxResults - firstPage.scoreDocs.size
+            val previousPage = firstPage.scoreDocs
+            fetchRemainingDocs(luceneQuery, remaining, previousPage, results)
         }
+
         return results.map { fetchPath(it) }
+    }
+
+    private tailrec fun fetchRemainingDocs(
+        query: Query,
+        remaining: Int,
+        previousPage: Array<out ScoreDoc>,
+        results: MutableList<ScoreDoc>
+    ) {
+        if (remaining <= 0 || previousPage.isEmpty())
+            return
+
+        val limit = min(resultsPerPage, remaining)
+        val currentPage = fetchMore(previousPage.last(), query, limit)
+        results.addAll(currentPage)
+
+        fetchRemainingDocs(
+            query = query,
+            remaining = remaining - currentPage.size,
+            previousPage = currentPage,
+            results = results
+        )
+    }
+
+    private fun shouldFetchMultiplePages(firstPage: TopDocs, query: DocumentQuery): Boolean {
+        val moreResultsExists = firstPage.totalHits.value > firstPage.scoreDocs.size
+        val queryRequestsMoreThanReturned = firstPage.scoreDocs.size < query.maxResults
+        return moreResultsExists && queryRequestsMoreThanReturned
     }
 
 
