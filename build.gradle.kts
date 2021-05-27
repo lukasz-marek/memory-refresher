@@ -15,8 +15,9 @@ repositories {
 dependencies {
     // kotlin
     val kotlinVersion = "1.5.10"
+    val coroutinesVersion = "1.5.0"
     implementation(kotlin("stdlib-jdk8:$kotlinVersion"))
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion")
 
     // cli-specific
     val picoCliVersion = "4.6.1"
@@ -27,9 +28,12 @@ dependencies {
     implementation("org.apache.lucene:lucene-core:8.8.2")
 
     // tests
+    testImplementation(platform("org.junit:junit-bom:5.7.2"))
+    testImplementation("org.junit.jupiter:junit-jupiter-api")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.7.2")
     testImplementation("io.strikt:strikt-core:0.31.0")
     testImplementation("io.mockk:mockk:1.10.6")
-    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.5.0")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutinesVersion")
 }
 
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
@@ -46,6 +50,10 @@ tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar>().con
     manifest {
         attributes["Main-Class"] = "MainKt"
     }
+}
+
+tasks.withType<Test>().configureEach {
+    useJUnitPlatform()
 }
 
 kapt {
