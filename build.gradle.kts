@@ -32,6 +32,7 @@ dependencies {
     // tests
     testImplementation(platform("org.junit:junit-bom:5.7.2"))
     testImplementation("org.junit.jupiter:junit-jupiter-api")
+    testImplementation("org.junit.jupiter:junit-jupiter-params")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.7.2")
     testImplementation("io.strikt:strikt-core:0.31.0")
     testImplementation("io.mockk:mockk:1.10.6")

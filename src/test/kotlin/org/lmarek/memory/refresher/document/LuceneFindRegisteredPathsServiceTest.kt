@@ -1,0 +1,68 @@
+package org.lmarek.memory.refresher.document
+
+import org.apache.lucene.index.IndexWriter
+import org.apache.lucene.search.IndexSearcher
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.io.TempDir
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
+import strikt.api.expectThat
+import strikt.assertions.hasSize
+import strikt.assertions.isEmpty
+import strikt.assertions.isEqualTo
+import test.utils.createAnalyzer
+import test.utils.createIndexReader
+import test.utils.createIndexWriter
+import java.nio.file.Path
+
+class LuceneFindRegisteredPathsServiceTest {
+
+    @TempDir
+    lateinit var tempDir: Path
+
+    private lateinit var indexWriter: IndexWriter
+
+    private lateinit var registerDocumentService: RegisterDocumentService
+
+    @BeforeEach
+    fun setup() {
+        indexWriter = createIndexWriter(tempDir)
+        registerDocumentService = LuceneRegisterDocumentService(indexWriter)
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = ["name", "empty"])
+    fun `should find a single matching document`(queryValue: String) {
+        // given
+        registerDocumentService.register(Document(path = "/document/with/name", content = "I have name inside"))
+        registerDocumentService.register(Document(path = "/document/with/empty", content = "I'm empty"))
+
+        val indexSearcher = IndexSearcher(createIndexReader(tempDir))
+        val tested = LuceneFindRegisteredPathsService(createAnalyzer(), indexSearcher)
+        val query = DocumentQuery(queryValue, 1)
+
+        // when
+        val results = tested.findMatching(query)
+
+        // then
+        expectThat(results).hasSize(1).and {
+            get { first() }.get { path }.isEqualTo("/document/with/$queryValue")
+        }
+    }
+
+    @Test
+    fun `should return empty list for unmatched document`(){
+        // given
+        registerDocumentService.register(Document("/unmatched", ""))
+        val indexSearcher = IndexSearcher(createIndexReader(tempDir))
+        val tested = LuceneFindRegisteredPathsService(createAnalyzer(), indexSearcher)
+        val query = DocumentQuery("nothing", 1)
+
+        // when
+        val results = tested.findMatching(query)
+
+        // then
+        expectThat(results).isEmpty()
+    }
+}
