@@ -4,6 +4,8 @@ import org.apache.lucene.analysis.standard.StandardAnalyzer
 import org.apache.lucene.index.IndexWriter
 import org.apache.lucene.index.IndexWriterConfig
 import org.apache.lucene.store.FSDirectory
+import org.lmarek.memory.refresher.document.DocumentLoader
+import org.lmarek.memory.refresher.document.LuceneDocumentRepository
 import picocli.CommandLine
 import java.io.File
 import java.nio.file.Paths
@@ -11,12 +13,20 @@ import java.util.concurrent.Callable
 
 @CommandLine.Command(name = "add")
 class Add : Callable<Int> {
+
+    @CommandLine.Parameters(index = "0", description = ["File to be added to index"])
+    private lateinit var fileToBeIndexed: File
+
+    private val documentLoader = DocumentLoader()
+
     override fun call(): Int {
-        println("Executing add command")
         createIndexDirectoryIfNotExists()
         createIndexWriter().use {
-
+            val documentRepository = LuceneDocumentRepository(it)
+            val newDocument = documentLoader.load(fileToBeIndexed)
+            documentRepository.save(newDocument)
         }
+        println("${fileToBeIndexed.absolutePath} loaded")
         return 0
     }
 
@@ -28,7 +38,7 @@ class Add : Callable<Int> {
     private fun createIndexDirectoryIfNotExists() {
         val indexDirectory = File(getIndexDirectoryPath())
         indexDirectory.mkdirs()
-        if(!(indexDirectory.canWrite() && indexDirectory.canRead()))
+        if (!(indexDirectory.canWrite() && indexDirectory.canRead()))
             throw CommandException("Cannot read or write to ${indexDirectory.absolutePath}")
     }
 

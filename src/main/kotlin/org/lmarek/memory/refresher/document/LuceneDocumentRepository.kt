@@ -12,14 +12,14 @@ private const val CONTENT_FIELD = "content"
 
 class LuceneDocumentRepository(private val indexWriter: IndexWriter) : DocumentRepository {
 
-    override fun save(documentToSave: DocumentToSave) {
-        val luceneDocument = documentToSave.toLuceneDocument()
-        val searchTerm = Term(PATH_FIELD, documentToSave.path)
+    override fun save(document: Document) {
+        val luceneDocument = document.toLuceneDocument()
+        val searchTerm = Term(PATH_FIELD, document.path)
         indexWriter.updateDocument(searchTerm, luceneDocument)
         indexWriter.commit()
     }
 
-    private fun DocumentToSave.toLuceneDocument(): LuceneDocument {
+    private fun Document.toLuceneDocument(): LuceneDocument {
         val luceneDocument = LuceneDocument()
         luceneDocument.add(TextField(CONTENT_FIELD, content, Field.Store.NO))
         luceneDocument.add(StringField(PATH_FIELD, path, Field.Store.YES))

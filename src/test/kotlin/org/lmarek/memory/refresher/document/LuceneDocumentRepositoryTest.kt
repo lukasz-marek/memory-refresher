@@ -9,7 +9,7 @@ import test.utils.createIndexReader
 import test.utils.createIndexWriter
 import java.nio.file.Path
 
-class LuceneDocumentToSaveRepositoryTest {
+class LuceneDocumentRepositoryTest {
 
     @Nested
     inner class TestSave {
@@ -19,7 +19,7 @@ class LuceneDocumentToSaveRepositoryTest {
             // given
             val indexWriter = createIndexWriter(tempDir)
             val tested = LuceneDocumentRepository(indexWriter)
-            val document = DocumentToSave("/path/to/file", "this is content of a document")
+            val document = Document("/path/to/file", "this is content of a document")
 
             // when
             tested.save(document)
@@ -34,7 +34,7 @@ class LuceneDocumentToSaveRepositoryTest {
             // given
             val indexWriter = createIndexWriter(tempDir)
             val tested = LuceneDocumentRepository(indexWriter)
-            val document = DocumentToSave("/path/to/file", "this is content of a document")
+            val document = Document("/path/to/file", "this is content of a document")
 
             // when
             tested.save(document)
@@ -55,7 +55,7 @@ class LuceneDocumentToSaveRepositoryTest {
 
             // when
             for (i in 1..10) {
-                tested.save(DocumentToSave("/path/to/document$i", "identical content"))
+                tested.save(Document("/path/to/document$i", "identical content"))
             }
 
             // then
