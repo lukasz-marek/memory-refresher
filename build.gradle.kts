@@ -25,7 +25,9 @@ dependencies {
     kapt("info.picocli:picocli-codegen:$picoCliVersion")
 
     // search engine
-    implementation("org.apache.lucene:lucene-core:8.8.2")
+    val luceneVersion = "8.8.2"
+    implementation("org.apache.lucene:lucene-core:$luceneVersion")
+    implementation("org.apache.lucene:lucene-queryparser:$luceneVersion")
 
     // tests
     testImplementation(platform("org.junit:junit-bom:5.7.2"))

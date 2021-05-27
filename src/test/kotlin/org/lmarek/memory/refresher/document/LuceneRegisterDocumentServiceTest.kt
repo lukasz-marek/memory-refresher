@@ -9,7 +9,7 @@ import test.utils.createIndexReader
 import test.utils.createIndexWriter
 import java.nio.file.Path
 
-class LuceneDocumentRepositoryTest {
+class LuceneRegisterDocumentServiceTest {
 
     @Nested
     inner class TestSave {
@@ -18,11 +18,11 @@ class LuceneDocumentRepositoryTest {
         fun `save 1 document should be successful`(@TempDir tempDir: Path) {
             // given
             val indexWriter = createIndexWriter(tempDir)
-            val tested = LuceneDocumentRepository(indexWriter)
+            val tested = LuceneRegisterDocumentService(indexWriter)
             val document = Document("/path/to/file", "this is content of a document")
 
             // when
-            tested.save(document)
+            tested.register(document)
 
             // then
             val indexReader = createIndexReader(tempDir)
@@ -33,13 +33,13 @@ class LuceneDocumentRepositoryTest {
         fun `save document multiple times with the same path should overwrite it`(@TempDir tempDir: Path) {
             // given
             val indexWriter = createIndexWriter(tempDir)
-            val tested = LuceneDocumentRepository(indexWriter)
+            val tested = LuceneRegisterDocumentService(indexWriter)
             val document = Document("/path/to/file", "this is content of a document")
 
             // when
-            tested.save(document)
+            tested.register(document)
             for (i in 1..10) {
-                tested.save(document.copy(content = i.toString()))
+                tested.register(document.copy(content = i.toString()))
             }
 
             // then
@@ -51,11 +51,11 @@ class LuceneDocumentRepositoryTest {
         fun `save documents with different paths should create new documents`(@TempDir tempDir: Path) {
             // given
             val indexWriter = createIndexWriter(tempDir)
-            val tested = LuceneDocumentRepository(indexWriter)
+            val tested = LuceneRegisterDocumentService(indexWriter)
 
             // when
             for (i in 1..10) {
-                tested.save(Document("/path/to/document$i", "identical content"))
+                tested.register(Document("/path/to/document$i", "identical content"))
             }
 
             // then

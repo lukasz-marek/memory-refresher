@@ -10,9 +10,9 @@ import org.apache.lucene.document.Document as LuceneDocument
 private const val PATH_FIELD = "path"
 private const val CONTENT_FIELD = "content"
 
-class LuceneDocumentRepository(private val indexWriter: IndexWriter) : DocumentRepository {
+class LuceneRegisterDocumentService(private val indexWriter: IndexWriter) : RegisterDocumentService {
 
-    override fun save(document: Document) {
+    override fun register(document: Document) {
         val luceneDocument = document.toLuceneDocument()
         val searchTerm = Term(PATH_FIELD, document.path)
         indexWriter.updateDocument(searchTerm, luceneDocument)
