@@ -1,5 +1,8 @@
 package org.lmarek.memory.refresher.document
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.yield
 import org.apache.lucene.document.Field
 import org.apache.lucene.document.StringField
 import org.apache.lucene.document.TextField
@@ -12,11 +15,14 @@ private const val CONTENT_FIELD = "content"
 
 class LuceneRegisterDocumentService(private val indexWriter: IndexWriter) : RegisterDocumentService {
 
-    override fun register(document: Document) {
-        val luceneDocument = document.toLuceneDocument()
-        val searchTerm = Term(PATH_FIELD, document.path)
-        indexWriter.updateDocument(searchTerm, luceneDocument)
-        indexWriter.commit()
+    override suspend fun register(document: Document) {
+        withContext(Dispatchers.IO) {
+            val luceneDocument = document.toLuceneDocument()
+            val searchTerm = Term(PATH_FIELD, document.path)
+            indexWriter.updateDocument(searchTerm, luceneDocument)
+            yield()
+            indexWriter.commit()
+        }
     }
 
     private fun Document.toLuceneDocument(): LuceneDocument {

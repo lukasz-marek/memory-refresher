@@ -1,5 +1,6 @@
 package org.lmarek.memory.refresher.commands
 
+import kotlinx.coroutines.runBlocking
 import org.apache.lucene.analysis.standard.StandardAnalyzer
 import org.apache.lucene.index.IndexWriter
 import org.apache.lucene.index.IndexWriterConfig
@@ -24,7 +25,9 @@ class Add : Callable<Int> {
         createIndexWriter().use {
             val documentRepository = LuceneRegisterDocumentService(it)
             val newDocument = documentLoader.load(fileToBeIndexed)
-            documentRepository.register(newDocument)
+            runBlocking {
+                documentRepository.register(newDocument)
+            }
         }
         println("${fileToBeIndexed.absolutePath} loaded")
         return 0
