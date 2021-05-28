@@ -1,5 +1,7 @@
 package org.lmarek.memory.refresher.document
 
+import kotlinx.coroutines.channels.ReceiveChannel
+
 interface FindRegisteredPathsService {
-    fun findMatching(query: DocumentQuery): List<RegisteredPath>
+    suspend fun findMatching(query: DocumentQuery): ReceiveChannel<RegisteredPath>
 }

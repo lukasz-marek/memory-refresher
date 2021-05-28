@@ -1,5 +1,9 @@
 package org.lmarek.memory.refresher.document
 
+import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.ReceiveChannel
+import kotlinx.coroutines.channels.SendChannel
 import org.apache.lucene.analysis.Analyzer
 import org.apache.lucene.queryparser.classic.QueryParser
 import org.apache.lucene.search.IndexSearcher
@@ -18,39 +22,57 @@ class LuceneFindRegisteredPathsService(
     private val queryParser = QueryParser(CONTENT_FIELD, analyzer)
     private val resultsPerPage = 5
 
-    override fun findMatching(query: DocumentQuery): List<RegisteredPath> {
-        val luceneQuery = queryParser.parse(query.query)
-        val firstPage = indexSearcher.search(luceneQuery, min(resultsPerPage, query.maxResults))
-        val results = mutableListOf<ScoreDoc>()
-        results.addAll(firstPage.scoreDocs)
+    override suspend fun findMatching(query: DocumentQuery): ReceiveChannel<RegisteredPath> {
+        val results = Channel<RegisteredPath>(capacity = Channel.UNLIMITED)
+        coroutineScope {
+            withContext(Dispatchers.IO) { // IO to make sure there is always a thread available in case of blocking calls
+                val luceneQuery = queryParser.parse(query.query)
+                val firstPageDeferred = async {
+                    indexSearcher.search(luceneQuery, min(resultsPerPage, query.maxResults))
+                }
 
-        if (shouldFetchMultiplePages(firstPage, query)) {
-            val remaining = query.maxResults - firstPage.scoreDocs.size
-            val previousPage = firstPage.scoreDocs
-            fetchRemainingDocs(luceneQuery, remaining, previousPage, results)
+                val searchResults = Channel<ScoreDoc>(capacity = resultsPerPage)
+                launch {
+                    val firstPage = firstPageDeferred.await()
+                    firstPage.scoreDocs.forEach { searchResults.send(it) }
+                    if (shouldFetchMultiplePages(firstPage, query)) {
+                        val remaining = query.maxResults - firstPage.scoreDocs.size
+                        val previousPage = firstPage.scoreDocs
+                        fetchRemainingDocs(luceneQuery, remaining, previousPage, searchResults)
+                    }
+                    searchResults.close()
+                }
+
+                launch {
+                    for (scoreDoc in searchResults)
+                        results.send(fetchPath(scoreDoc))
+                    results.close()
+                }
+            }
         }
 
-        return results.map { fetchPath(it) }
+        return results
     }
 
-    private tailrec fun fetchRemainingDocs(
+    private tailrec suspend fun fetchRemainingDocs(
         query: Query,
         remaining: Int,
         previousPage: Array<out ScoreDoc>,
-        results: MutableList<ScoreDoc>
+        searchResults: SendChannel<ScoreDoc>
     ) {
         if (remaining <= 0 || previousPage.isEmpty())
             return
 
         val limit = min(resultsPerPage, remaining)
         val currentPage = fetchMore(previousPage.last(), query, limit)
-        results.addAll(currentPage)
+        for (scoreDoc in currentPage)
+            searchResults.send(scoreDoc)
 
         fetchRemainingDocs(
             query = query,
             remaining = remaining - currentPage.size,
             previousPage = currentPage,
-            results = results
+            searchResults = searchResults
         )
     }
 

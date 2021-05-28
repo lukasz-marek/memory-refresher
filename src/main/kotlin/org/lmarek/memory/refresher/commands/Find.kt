@@ -1,5 +1,6 @@
 package org.lmarek.memory.refresher.commands
 
+import kotlinx.coroutines.runBlocking
 import org.apache.lucene.analysis.standard.StandardAnalyzer
 import org.apache.lucene.index.DirectoryReader
 import org.apache.lucene.index.IndexReader
@@ -23,8 +24,11 @@ class Find : Callable<Int> {
         val indexReader = createIndexReader(Paths.get(getIndexDirectoryPath()))
         val registeredPathsService = LuceneFindRegisteredPathsService(StandardAnalyzer(), IndexSearcher(indexReader))
         val documentQuery = DocumentQuery(query.joinToString(separator = " "), Int.MAX_VALUE)
-        val searchResults = registeredPathsService.findMatching(documentQuery)
-        searchResults.forEach { println(it.path) }
+        runBlocking {
+            val searchResults = registeredPathsService.findMatching(documentQuery)
+            for (result in searchResults)
+                println(result.path)
+        }
         return 0
     }
 

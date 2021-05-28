@@ -1,5 +1,7 @@
 package org.lmarek.memory.refresher.document
 
+import kotlinx.coroutines.channels.toList
+import kotlinx.coroutines.runBlocking
 import org.apache.lucene.index.IndexWriter
 import org.apache.lucene.search.IndexSearcher
 import org.junit.jupiter.api.BeforeEach
@@ -33,7 +35,7 @@ class LuceneFindRegisteredPathsServiceTest {
 
     @ParameterizedTest
     @ValueSource(strings = ["name", "empty"])
-    fun `should find a single matching document`(queryValue: String) {
+    fun `should find a single matching document`(queryValue: String) = runBlocking<Unit> {
         // given
         registerDocumentService.register(Document(path = "/document/with/name", content = "I have name inside"))
         registerDocumentService.register(Document(path = "/document/with/empty", content = "I'm empty"))
@@ -43,7 +45,7 @@ class LuceneFindRegisteredPathsServiceTest {
         val query = DocumentQuery(queryValue, 1)
 
         // when
-        val results = tested.findMatching(query)
+        val results = tested.findMatching(query).toList()
 
         // then
         expectThat(results).hasSize(1).and {
@@ -52,7 +54,7 @@ class LuceneFindRegisteredPathsServiceTest {
     }
 
     @Test
-    fun `should return empty list for unmatched document`() {
+    fun `should return empty list for unmatched document`() = runBlocking<Unit> {
         // given
         registerDocumentService.register(Document("/unmatched", ""))
         val indexSearcher = IndexSearcher(createIndexReader(tempDir))
@@ -60,7 +62,7 @@ class LuceneFindRegisteredPathsServiceTest {
         val query = DocumentQuery("nothing", 1)
 
         // when
-        val results = tested.findMatching(query)
+        val results = tested.findMatching(query).toList()
 
         // then
         expectThat(results).isEmpty()
@@ -68,7 +70,7 @@ class LuceneFindRegisteredPathsServiceTest {
 
     @ParameterizedTest
     @ValueSource(ints = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 21, 27, 33, 37, 49, 91, 99])
-    fun `should return some out of 100 existing unique documents`(count: Int) {
+    fun `should return some out of 100 existing unique documents`(count: Int) = runBlocking<Unit> {
         // given
         for (i in 1..100) {
             registerDocumentService.register(Document("/document_$i", "match"))
@@ -78,7 +80,7 @@ class LuceneFindRegisteredPathsServiceTest {
         val query = DocumentQuery("match", count)
 
         // when
-        val results = tested.findMatching(query)
+        val results = tested.findMatching(query).toList()
 
         // then
         expectThat(results).hasSize(count)
@@ -86,7 +88,7 @@ class LuceneFindRegisteredPathsServiceTest {
     }
 
     @Test
-    fun `shouldn't fail when there are fewer documents than requested`() {
+    fun `shouldn't fail when there are fewer documents than requested`() = runBlocking<Unit> {
         // given
         for (i in 1..5) {
             registerDocumentService.register(Document("/document_$i", "match"))
@@ -96,7 +98,7 @@ class LuceneFindRegisteredPathsServiceTest {
         val query = DocumentQuery("match", 100)
 
         // when
-        val results = tested.findMatching(query)
+        val results = tested.findMatching(query).toList()
 
         // then
         expectThat(results).hasSize(5)
