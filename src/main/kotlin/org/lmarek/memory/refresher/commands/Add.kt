@@ -29,7 +29,7 @@ class Add : Callable<Int> {
                 documentRepository.register(newDocument)
             }
         }
-        println("${fileToBeIndexed.absolutePath} loaded")
+        println("${fileToBeIndexed.canonicalPath} loaded")
         return 0
     }
 
@@ -42,7 +42,7 @@ class Add : Callable<Int> {
         val indexDirectory = File(getIndexDirectoryPath())
         indexDirectory.mkdirs()
         if (!(indexDirectory.canWrite() && indexDirectory.canRead()))
-            throw CommandException("Cannot read or write to ${indexDirectory.absolutePath}")
+            throw CommandException("Cannot read or write to ${indexDirectory.canonicalPath}")
     }
 
     private fun createIndexWriter(): IndexWriter {
