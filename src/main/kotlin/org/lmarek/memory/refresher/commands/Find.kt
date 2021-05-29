@@ -7,8 +7,8 @@ import org.apache.lucene.index.DirectoryReader
 import org.apache.lucene.index.IndexReader
 import org.apache.lucene.search.IndexSearcher
 import org.apache.lucene.store.FSDirectory
-import org.lmarek.memory.refresher.document.DocumentQuery
-import org.lmarek.memory.refresher.document.LuceneFindRegisteredPathsService
+import org.lmarek.memory.refresher.document.find.DocumentQuery
+import org.lmarek.memory.refresher.document.find.LucenePathsReadOnlyRepository
 import picocli.CommandLine
 import java.io.File
 import java.nio.file.Path
@@ -24,11 +24,11 @@ class Find : Callable<Int> {
     override fun call(): Int {
         createIndexReader(Paths.get(getIndexDirectoryPath())).use {
             val registeredPathsService =
-                LuceneFindRegisteredPathsService(StandardAnalyzer()) { IndexSearcher(it) }
+                LucenePathsReadOnlyRepository(StandardAnalyzer()) { IndexSearcher(it) }
             val documentQuery = DocumentQuery(query.joinToString(separator = " "), Int.MAX_VALUE)
             runBlocking {
                 val searchResults = registeredPathsService.findMatching(documentQuery)
-                searchResults.consumeEach { println(it.path) }
+                searchResults.consumeEach { println(it.value) }
             }
         }
         return 0

@@ -1,4 +1,4 @@
-package org.lmarek.memory.refresher.document
+package org.lmarek.memory.refresher.document.find
 
 import kotlinx.coroutines.channels.toList
 import kotlinx.coroutines.runBlocking
@@ -10,6 +10,10 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
+import org.lmarek.memory.refresher.document.Document
+import org.lmarek.memory.refresher.document.DocumentPath
+import org.lmarek.memory.refresher.document.register.LucenePathsWriteOnlyRepository
+import org.lmarek.memory.refresher.document.register.PathsWriteOnlyRepository
 import strikt.api.expectThat
 import strikt.assertions.hasSize
 import strikt.assertions.isEmpty
@@ -19,19 +23,19 @@ import test.utils.createIndexReader
 import test.utils.createIndexWriter
 import java.nio.file.Path
 
-class LuceneFindRegisteredPathsServiceTest {
+class LucenePathsReadOnlyRepositoryTest {
 
     @TempDir
     lateinit var tempDir: Path
 
     private lateinit var indexWriter: IndexWriter
 
-    private lateinit var registerDocumentService: RegisterDocumentService
+    private lateinit var pathsWriteOnlyRepository: PathsWriteOnlyRepository
 
     @BeforeEach
     fun setup() {
         indexWriter = createIndexWriter(tempDir)
-        registerDocumentService = LuceneRegisterDocumentService(indexWriter)
+        pathsWriteOnlyRepository = LucenePathsWriteOnlyRepository(indexWriter)
     }
 
     @Nested
@@ -42,10 +46,10 @@ class LuceneFindRegisteredPathsServiceTest {
         fun `should return all documents`(count: Int) = runBlocking<Unit> {
             // given
             for (i in 1..count) {
-                registerDocumentService.register(Document(DocumentPath("/document_$i"), "match"))
+                pathsWriteOnlyRepository.register(Document(DocumentPath("/document_$i"), "match"))
             }
             val tested =
-                LuceneFindRegisteredPathsService(createAnalyzer()) { IndexSearcher(createIndexReader(tempDir)) }
+                LucenePathsReadOnlyRepository(createAnalyzer()) { IndexSearcher(createIndexReader(tempDir)) }
 
             // when
             val results = tested.listAll().toList()
@@ -63,13 +67,13 @@ class LuceneFindRegisteredPathsServiceTest {
         @ValueSource(strings = ["name", "empty"])
         fun `should find a single matching document`(queryValue: String) = runBlocking<Unit> {
             // given
-            registerDocumentService.register(
+            pathsWriteOnlyRepository.register(
                 Document(
                     path = DocumentPath("/document/with/name"),
                     content = "I have name inside"
                 )
             )
-            registerDocumentService.register(
+            pathsWriteOnlyRepository.register(
                 Document(
                     path = DocumentPath("/document/with/empty"),
                     content = "I'm empty"
@@ -77,7 +81,7 @@ class LuceneFindRegisteredPathsServiceTest {
             )
 
             val tested =
-                LuceneFindRegisteredPathsService(createAnalyzer()) { IndexSearcher(createIndexReader(tempDir)) }
+                LucenePathsReadOnlyRepository(createAnalyzer()) { IndexSearcher(createIndexReader(tempDir)) }
             val query = DocumentQuery(queryValue, 1)
 
             // when
@@ -85,16 +89,16 @@ class LuceneFindRegisteredPathsServiceTest {
 
             // then
             expectThat(results).hasSize(1).and {
-                get { first() }.get { path }.isEqualTo("/document/with/$queryValue")
+                get { first() }.get { value }.isEqualTo("/document/with/$queryValue")
             }
         }
 
         @Test
         fun `should return empty list for unmatched document`() = runBlocking<Unit> {
             // given
-            registerDocumentService.register(Document(DocumentPath("/unmatched"), ""))
+            pathsWriteOnlyRepository.register(Document(DocumentPath("/unmatched"), ""))
             val tested =
-                LuceneFindRegisteredPathsService(createAnalyzer()) { IndexSearcher(createIndexReader(tempDir)) }
+                LucenePathsReadOnlyRepository(createAnalyzer()) { IndexSearcher(createIndexReader(tempDir)) }
             val query = DocumentQuery("nothing", 1)
 
             // when
@@ -109,10 +113,10 @@ class LuceneFindRegisteredPathsServiceTest {
         fun `should return some out of 100 existing unique documents`(count: Int) = runBlocking<Unit> {
             // given
             for (i in 1..100) {
-                registerDocumentService.register(Document(DocumentPath("/document_$i"), "match"))
+                pathsWriteOnlyRepository.register(Document(DocumentPath("/document_$i"), "match"))
             }
             val tested =
-                LuceneFindRegisteredPathsService(createAnalyzer()) { IndexSearcher(createIndexReader(tempDir)) }
+                LucenePathsReadOnlyRepository(createAnalyzer()) { IndexSearcher(createIndexReader(tempDir)) }
             val query = DocumentQuery("match", count)
 
             // when
@@ -127,10 +131,10 @@ class LuceneFindRegisteredPathsServiceTest {
         fun `shouldn't fail when there are fewer documents than requested`() = runBlocking<Unit> {
             // given
             for (i in 1..5) {
-                registerDocumentService.register(Document(DocumentPath("/document_$i"), "match"))
+                pathsWriteOnlyRepository.register(Document(DocumentPath("/document_$i"), "match"))
             }
             val tested =
-                LuceneFindRegisteredPathsService(createAnalyzer()) { IndexSearcher(createIndexReader(tempDir)) }
+                LucenePathsReadOnlyRepository(createAnalyzer()) { IndexSearcher(createIndexReader(tempDir)) }
             val query = DocumentQuery("match", 100)
 
             // when

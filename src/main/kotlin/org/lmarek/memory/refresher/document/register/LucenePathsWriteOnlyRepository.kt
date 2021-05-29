@@ -1,4 +1,4 @@
-package org.lmarek.memory.refresher.document
+package org.lmarek.memory.refresher.document.register
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.ReceiveChannel
@@ -10,12 +10,14 @@ import org.apache.lucene.document.StringField
 import org.apache.lucene.document.TextField
 import org.apache.lucene.index.IndexWriter
 import org.apache.lucene.index.Term
+import org.lmarek.memory.refresher.document.Document
+import org.lmarek.memory.refresher.document.DocumentPath
 import org.apache.lucene.document.Document as LuceneDocument
 
 private const val PATH_FIELD = "path"
 private const val CONTENT_FIELD = "content"
 
-class LuceneRegisterDocumentService(private val indexWriter: IndexWriter) : RegisterDocumentService {
+class LucenePathsWriteOnlyRepository(private val indexWriter: IndexWriter) : PathsWriteOnlyRepository {
 
     override suspend fun register(document: Document) {
         withContext(Dispatchers.IO) {

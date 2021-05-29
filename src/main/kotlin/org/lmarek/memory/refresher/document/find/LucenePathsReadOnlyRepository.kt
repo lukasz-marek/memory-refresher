@@ -1,4 +1,4 @@
-package org.lmarek.memory.refresher.document
+package org.lmarek.memory.refresher.document.find
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -11,29 +11,30 @@ import kotlinx.coroutines.withContext
 import org.apache.lucene.analysis.Analyzer
 import org.apache.lucene.queryparser.classic.QueryParser
 import org.apache.lucene.search.*
+import org.lmarek.memory.refresher.document.DocumentPath
 import kotlin.math.min
 
 private const val PATH_FIELD = "path"
 private const val CONTENT_FIELD = "content"
 
-class LuceneFindRegisteredPathsService(
+class LucenePathsReadOnlyRepository(
     analyzer: Analyzer,
     private val indexSearcherProvider: () -> IndexSearcher
-) : FindRegisteredPathsService {
+) : PathsReadOnlyRepository {
     private val queryParser = QueryParser(CONTENT_FIELD, analyzer)
     private val resultsPerPage = 5
 
-    override suspend fun findMatching(query: DocumentQuery): ReceiveChannel<RegisteredPath> {
+    override suspend fun findMatching(query: DocumentQuery): ReceiveChannel<DocumentPath> {
         val luceneQuery = queryParser.parse(query.query)
         return find(luceneQuery, query.maxResults)
     }
 
-    override suspend fun listAll(): ReceiveChannel<RegisteredPath> {
+    override suspend fun listAll(): ReceiveChannel<DocumentPath> {
         return find(MatchAllDocsQuery(), Int.MAX_VALUE)
     }
 
-    private suspend fun find(query: Query, limit: Int): ReceiveChannel<RegisteredPath> {
-        val results = Channel<RegisteredPath>(capacity = Channel.UNLIMITED)
+    private suspend fun find(query: Query, limit: Int): ReceiveChannel<DocumentPath> {
+        val results = Channel<DocumentPath>(capacity = Channel.UNLIMITED)
         withContext(Dispatchers.IO) { // IO to make sure there is always a thread available in case of blocking calls
             val indexSearcher =
                 indexSearcherProvider() // fresh instance for each search to make sure we get fresh results
@@ -97,10 +98,9 @@ class LuceneFindRegisteredPathsService(
         return page.scoreDocs
     }
 
-    private fun IndexSearcher.fetchPath(scoreDoc: ScoreDoc): RegisteredPath {
+    private fun IndexSearcher.fetchPath(scoreDoc: ScoreDoc): DocumentPath {
         val document = doc(scoreDoc.doc)
         val path = document[PATH_FIELD]
-        val id = scoreDoc.doc
-        return RegisteredPath(id, path)
+        return DocumentPath(path)
     }
 }

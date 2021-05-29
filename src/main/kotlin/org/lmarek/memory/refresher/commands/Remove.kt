@@ -6,7 +6,7 @@ import org.apache.lucene.index.IndexWriter
 import org.apache.lucene.index.IndexWriterConfig
 import org.apache.lucene.store.FSDirectory
 import org.lmarek.memory.refresher.document.DocumentPath
-import org.lmarek.memory.refresher.document.LuceneRegisterDocumentService
+import org.lmarek.memory.refresher.document.register.LucenePathsWriteOnlyRepository
 import picocli.CommandLine
 import java.io.File
 import java.nio.file.Paths
@@ -22,7 +22,7 @@ class Remove : Callable<Int> {
     override fun call(): Int {
         createIndexDirectoryIfNotExists()
         createIndexWriter().use {
-            val documentRepository = LuceneRegisterDocumentService(it)
+            val documentRepository = LucenePathsWriteOnlyRepository(it)
             runBlocking {
                 documentRepository.unregister(DocumentPath(fileToBeRemovedFromIndex.canonicalPath))
             }

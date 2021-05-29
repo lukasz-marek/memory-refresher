@@ -1,17 +1,19 @@
-package org.lmarek.memory.refresher.document
+package org.lmarek.memory.refresher.document.register
 
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
+import org.lmarek.memory.refresher.document.Document
+import org.lmarek.memory.refresher.document.DocumentPath
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 import test.utils.createIndexReader
 import test.utils.createIndexWriter
 import java.nio.file.Path
 
-class LuceneRegisterDocumentServiceTest {
+class LucenePathsWriteOnlyRepositoryTest {
 
     @Nested
     inner class TestSave {
@@ -20,7 +22,7 @@ class LuceneRegisterDocumentServiceTest {
         fun `save 1 document should be successful`(@TempDir tempDir: Path) = runBlocking<Unit> {
             // given
             val indexWriter = createIndexWriter(tempDir)
-            val tested = LuceneRegisterDocumentService(indexWriter)
+            val tested = LucenePathsWriteOnlyRepository(indexWriter)
             val document = Document(DocumentPath("/path/to/file"), "this is content of a document")
 
             // when
@@ -36,7 +38,7 @@ class LuceneRegisterDocumentServiceTest {
             runBlocking<Unit> {
                 // given
                 val indexWriter = createIndexWriter(tempDir)
-                val tested = LuceneRegisterDocumentService(indexWriter)
+                val tested = LucenePathsWriteOnlyRepository(indexWriter)
                 val document = Document(DocumentPath("/path/to/file"), "this is content of a document")
 
                 // when
@@ -55,7 +57,7 @@ class LuceneRegisterDocumentServiceTest {
             runBlocking<Unit> {
                 // given
                 val indexWriter = createIndexWriter(tempDir)
-                val tested = LuceneRegisterDocumentService(indexWriter)
+                val tested = LucenePathsWriteOnlyRepository(indexWriter)
 
                 // when
                 for (i in 1..10) {
@@ -75,7 +77,7 @@ class LuceneRegisterDocumentServiceTest {
         fun `unregister should be successful if file is not registered`(@TempDir tempDir: Path) = runBlocking<Unit> {
             // given
             val indexWriter = createIndexWriter(tempDir)
-            val tested = LuceneRegisterDocumentService(indexWriter)
+            val tested = LucenePathsWriteOnlyRepository(indexWriter)
             val path = DocumentPath("/does/not/exist")
 
             // when / then
@@ -86,7 +88,7 @@ class LuceneRegisterDocumentServiceTest {
         fun `unregister should be idempotent when file is not registered`(@TempDir tempDir: Path) = runBlocking<Unit> {
             // given
             val indexWriter = createIndexWriter(tempDir)
-            val tested = LuceneRegisterDocumentService(indexWriter)
+            val tested = LucenePathsWriteOnlyRepository(indexWriter)
             val path = DocumentPath("/does/not/exist")
 
             // when / then
@@ -98,7 +100,7 @@ class LuceneRegisterDocumentServiceTest {
         fun `unregister should remove file from index`(@TempDir tempDir: Path) = runBlocking<Unit> {
             // given
             val indexWriter = createIndexWriter(tempDir)
-            val tested = LuceneRegisterDocumentService(indexWriter)
+            val tested = LucenePathsWriteOnlyRepository(indexWriter)
             val document = Document(DocumentPath("/path/to/file"), "this is content of a document")
 
             // when
@@ -118,7 +120,7 @@ class LuceneRegisterDocumentServiceTest {
         fun `should remove all passed documents`(@TempDir tempDir: Path) = runBlocking<Unit> {
             // given
             val indexWriter = createIndexWriter(tempDir)
-            val tested = LuceneRegisterDocumentService(indexWriter)
+            val tested = LucenePathsWriteOnlyRepository(indexWriter)
             val documentPaths = (1..100).map { DocumentPath("/path/to/document$it") }
             for (path in documentPaths) {
                 tested.register(Document(path, "identical content"))

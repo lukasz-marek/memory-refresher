@@ -6,7 +6,7 @@ import org.apache.lucene.index.IndexWriter
 import org.apache.lucene.index.IndexWriterConfig
 import org.apache.lucene.store.FSDirectory
 import org.lmarek.memory.refresher.document.DocumentLoader
-import org.lmarek.memory.refresher.document.LuceneRegisterDocumentService
+import org.lmarek.memory.refresher.document.register.LucenePathsWriteOnlyRepository
 import picocli.CommandLine
 import java.io.File
 import java.nio.file.Paths
@@ -23,7 +23,7 @@ class Add : Callable<Int> {
     override fun call(): Int {
         createIndexDirectoryIfNotExists()
         createIndexWriter().use {
-            val documentRepository = LuceneRegisterDocumentService(it)
+            val documentRepository = LucenePathsWriteOnlyRepository(it)
             val newDocument = documentLoader.load(fileToBeIndexed)
             runBlocking {
                 documentRepository.register(newDocument)

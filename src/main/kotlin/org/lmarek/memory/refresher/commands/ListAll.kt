@@ -7,7 +7,7 @@ import org.apache.lucene.index.DirectoryReader
 import org.apache.lucene.index.IndexReader
 import org.apache.lucene.search.IndexSearcher
 import org.apache.lucene.store.FSDirectory
-import org.lmarek.memory.refresher.document.LuceneFindRegisteredPathsService
+import org.lmarek.memory.refresher.document.find.LucenePathsReadOnlyRepository
 import picocli.CommandLine
 import java.io.File
 import java.nio.file.Path
@@ -19,10 +19,10 @@ class ListAll : Callable<Int> {
 
     override fun call(): Int {
         createIndexReader(Paths.get(getIndexDirectoryPath())).use {
-            val registeredPathsService = LuceneFindRegisteredPathsService(StandardAnalyzer()) { IndexSearcher(it) }
+            val registeredPathsService = LucenePathsReadOnlyRepository(StandardAnalyzer()) { IndexSearcher(it) }
             runBlocking {
                 val searchResults = registeredPathsService.listAll()
-                searchResults.consumeEach { println(it.path) }
+                searchResults.consumeEach { println(it.value) }
             }
         }
         return 0
