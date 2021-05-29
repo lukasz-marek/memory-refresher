@@ -1,6 +1,6 @@
 package org.lmarek.memory.refresher.document.refresh
 
-import kotlinx.coroutines.channels.ReceiveChannel
+import kotlinx.coroutines.flow.Flow
 import org.lmarek.memory.refresher.document.DocumentPath
 
 enum class RefreshType {
@@ -10,5 +10,5 @@ enum class RefreshType {
 data class RefreshResult(val documentPath: DocumentPath, val type: RefreshType)
 
 interface RefreshDocumentsService {
-    suspend fun refreshAll(): ReceiveChannel<RefreshResult>
+    suspend fun refreshAll(): Flow<RefreshResult>
 }

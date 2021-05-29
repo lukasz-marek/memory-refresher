@@ -1,11 +1,9 @@
 package org.lmarek.memory.refresher.document.refresh
 
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.channels.ReceiveChannel
-import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.withContext
 import org.lmarek.memory.refresher.document.Document
 import org.lmarek.memory.refresher.document.DocumentLoader
@@ -20,24 +18,25 @@ class RefreshDocumentsServiceImpl(
     private val documentLoader: DocumentLoader
 ) : RefreshDocumentsService {
 
-    override suspend fun refreshAll(): ReceiveChannel<RefreshResult> {
+    override suspend fun refreshAll(): Flow<RefreshResult> {
         val allDocuments = readOnlyRepository.listAll()
-        val output = Channel<RefreshResult>(Channel.UNLIMITED)
-        coroutineScope {
-            launch {
-                allDocuments.collect { path ->
-                    val refreshedDocument = loadDocument(path)
-                    if (refreshedDocument != null) {
-                        writeOnlyRepository.register(refreshedDocument)
-                    } else {
-                        writeOnlyRepository.unregister(path)
-                    }
-                    val refreshType = if (refreshedDocument == null) RefreshType.DELETE else RefreshType.RELOAD
-                    output.send(RefreshResult(path, refreshType))
-                }
+        return flow {
+            allDocuments.collect { path ->
+                emit(refresh(path))
             }
         }
-        return output
+    }
+
+    private suspend fun refresh(path: DocumentPath): RefreshResult {
+        val refreshedDocument = loadDocument(path)
+        val refreshType = if (refreshedDocument != null) {
+            writeOnlyRepository.register(refreshedDocument)
+            RefreshType.RELOAD
+        } else {
+            writeOnlyRepository.unregister(path)
+            RefreshType.DELETE
+        }
+        return RefreshResult(path, refreshType)
     }
 
     private suspend fun loadDocument(path: DocumentPath): Document? {
