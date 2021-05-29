@@ -1,3 +1,5 @@
+package org.lmarek.memory.refresher
+
 import org.lmarek.memory.refresher.commands.Main
 import picocli.CommandLine
 import kotlin.system.exitProcess
