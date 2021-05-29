@@ -37,8 +37,13 @@ class LuceneFindRegisteredPathsServiceTest {
     @ValueSource(strings = ["name", "empty"])
     fun `should find a single matching document`(queryValue: String) = runBlocking<Unit> {
         // given
-        registerDocumentService.register(Document(path = "/document/with/name", content = "I have name inside"))
-        registerDocumentService.register(Document(path = "/document/with/empty", content = "I'm empty"))
+        registerDocumentService.register(
+            Document(
+                path = DocumentPath("/document/with/name"),
+                content = "I have name inside"
+            )
+        )
+        registerDocumentService.register(Document(path = DocumentPath("/document/with/empty"), content = "I'm empty"))
 
         val indexSearcher = IndexSearcher(createIndexReader(tempDir))
         val tested = LuceneFindRegisteredPathsService(createAnalyzer(), indexSearcher)
@@ -56,7 +61,7 @@ class LuceneFindRegisteredPathsServiceTest {
     @Test
     fun `should return empty list for unmatched document`() = runBlocking<Unit> {
         // given
-        registerDocumentService.register(Document("/unmatched", ""))
+        registerDocumentService.register(Document(DocumentPath("/unmatched"), ""))
         val indexSearcher = IndexSearcher(createIndexReader(tempDir))
         val tested = LuceneFindRegisteredPathsService(createAnalyzer(), indexSearcher)
         val query = DocumentQuery("nothing", 1)
@@ -73,7 +78,7 @@ class LuceneFindRegisteredPathsServiceTest {
     fun `should return some out of 100 existing unique documents`(count: Int) = runBlocking<Unit> {
         // given
         for (i in 1..100) {
-            registerDocumentService.register(Document("/document_$i", "match"))
+            registerDocumentService.register(Document(DocumentPath("/document_$i"), "match"))
         }
         val indexSearcher = IndexSearcher(createIndexReader(tempDir))
         val tested = LuceneFindRegisteredPathsService(createAnalyzer(), indexSearcher)
@@ -91,7 +96,7 @@ class LuceneFindRegisteredPathsServiceTest {
     fun `shouldn't fail when there are fewer documents than requested`() = runBlocking<Unit> {
         // given
         for (i in 1..5) {
-            registerDocumentService.register(Document("/document_$i", "match"))
+            registerDocumentService.register(Document(DocumentPath("/document_$i"), "match"))
         }
         val indexSearcher = IndexSearcher(createIndexReader(tempDir))
         val tested = LuceneFindRegisteredPathsService(createAnalyzer(), indexSearcher)

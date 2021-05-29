@@ -25,7 +25,7 @@ class DocumentLoaderTest {
 
         // then
         expectThat(document) {
-            get { Paths.get(path).isAbsolute }.isTrue()
+            get { Paths.get(path.value).isAbsolute }.isTrue()
             get { content }.isEqualTo("some content\n")
         }
     }

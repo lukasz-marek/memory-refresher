@@ -18,8 +18,17 @@ class LuceneRegisterDocumentService(private val indexWriter: IndexWriter) : Regi
     override suspend fun register(document: Document) {
         withContext(Dispatchers.IO) {
             val luceneDocument = document.toLuceneDocument()
-            val searchTerm = Term(PATH_FIELD, document.path)
+            val searchTerm = Term(PATH_FIELD, document.path.value)
             indexWriter.updateDocument(searchTerm, luceneDocument)
+            yield()
+            indexWriter.commit()
+        }
+    }
+
+    override suspend fun unregister(path: DocumentPath) {
+        withContext(Dispatchers.IO) {
+            val searchTerm = Term(PATH_FIELD, path.value)
+            indexWriter.deleteDocuments(searchTerm)
             yield()
             indexWriter.commit()
         }
@@ -28,7 +37,7 @@ class LuceneRegisterDocumentService(private val indexWriter: IndexWriter) : Regi
     private fun Document.toLuceneDocument(): LuceneDocument {
         val luceneDocument = LuceneDocument()
         luceneDocument.add(TextField(CONTENT_FIELD, content, Field.Store.NO))
-        luceneDocument.add(StringField(PATH_FIELD, path, Field.Store.YES))
+        luceneDocument.add(StringField(PATH_FIELD, path.value, Field.Store.YES))
         return luceneDocument
     }
 }

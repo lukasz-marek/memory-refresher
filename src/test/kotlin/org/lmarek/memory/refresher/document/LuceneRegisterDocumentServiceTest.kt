@@ -20,7 +20,7 @@ class LuceneRegisterDocumentServiceTest {
             // given
             val indexWriter = createIndexWriter(tempDir)
             val tested = LuceneRegisterDocumentService(indexWriter)
-            val document = Document("/path/to/file", "this is content of a document")
+            val document = Document(DocumentPath("/path/to/file"), "this is content of a document")
 
             // when
             tested.register(document)
@@ -36,7 +36,7 @@ class LuceneRegisterDocumentServiceTest {
                 // given
                 val indexWriter = createIndexWriter(tempDir)
                 val tested = LuceneRegisterDocumentService(indexWriter)
-                val document = Document("/path/to/file", "this is content of a document")
+                val document = Document(DocumentPath("/path/to/file"), "this is content of a document")
 
                 // when
                 tested.register(document)
@@ -58,12 +58,55 @@ class LuceneRegisterDocumentServiceTest {
 
                 // when
                 for (i in 1..10) {
-                    tested.register(Document("/path/to/document$i", "identical content"))
+                    tested.register(Document(DocumentPath("/path/to/document$i"), "identical content"))
                 }
 
                 // then
                 val indexReader = createIndexReader(tempDir)
                 expectThat(indexReader.numDocs()).isEqualTo(10)
             }
+    }
+
+    @Nested
+    inner class TestRemove {
+
+        @Test
+        fun `unregister should be successful if file is not registered`(@TempDir tempDir: Path) = runBlocking<Unit> {
+            // given
+            val indexWriter = createIndexWriter(tempDir)
+            val tested = LuceneRegisterDocumentService(indexWriter)
+            val path = DocumentPath("/does/not/exist")
+
+            // when / then
+            tested.unregister(path) // should not throw
+        }
+
+        @Test
+        fun `unregister should be idempotent when file is not registered`(@TempDir tempDir: Path) = runBlocking<Unit> {
+            // given
+            val indexWriter = createIndexWriter(tempDir)
+            val tested = LuceneRegisterDocumentService(indexWriter)
+            val path = DocumentPath("/does/not/exist")
+
+            // when / then
+            tested.unregister(path) // should not throw
+            tested.unregister(path) // should not throw
+        }
+
+        @Test
+        fun `unregister should remove file from index`(@TempDir tempDir: Path) = runBlocking<Unit> {
+            // given
+            val indexWriter = createIndexWriter(tempDir)
+            val tested = LuceneRegisterDocumentService(indexWriter)
+            val document = Document(DocumentPath("/path/to/file"), "this is content of a document")
+
+            // when
+            tested.register(document)
+            tested.unregister(document.path)
+
+            // then
+            val indexReader = createIndexReader(tempDir)
+            expectThat(indexReader.numDocs()).isEqualTo(0)
+        }
     }
 }

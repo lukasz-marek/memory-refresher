@@ -21,13 +21,15 @@ class Find : Callable<Int> {
     private lateinit var query: List<String>
 
     override fun call(): Int {
-        val indexReader = createIndexReader(Paths.get(getIndexDirectoryPath()))
-        val registeredPathsService = LuceneFindRegisteredPathsService(StandardAnalyzer(), IndexSearcher(indexReader))
-        val documentQuery = DocumentQuery(query.joinToString(separator = " "), Int.MAX_VALUE)
-        runBlocking {
-            val searchResults = registeredPathsService.findMatching(documentQuery)
-            for (result in searchResults)
-                println(result.path)
+        createIndexReader(Paths.get(getIndexDirectoryPath())).use {
+            val registeredPathsService =
+                LuceneFindRegisteredPathsService(StandardAnalyzer(), IndexSearcher(it))
+            val documentQuery = DocumentQuery(query.joinToString(separator = " "), Int.MAX_VALUE)
+            runBlocking {
+                val searchResults = registeredPathsService.findMatching(documentQuery)
+                for (result in searchResults)
+                    println(result.path)
+            }
         }
         return 0
     }

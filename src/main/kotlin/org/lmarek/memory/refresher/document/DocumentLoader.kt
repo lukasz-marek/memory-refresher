@@ -9,7 +9,7 @@ class DocumentLoader {
 
     fun load(file: File): Document {
         try {
-            return Document(file.canonicalPath, file.readText())
+            return Document(DocumentPath(file.canonicalPath), file.readText())
         } catch (exception: IOException) {
             throw DocumentLoaderException(exception)
         }
