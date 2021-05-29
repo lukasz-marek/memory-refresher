@@ -1,5 +1,6 @@
 package org.lmarek.memory.refresher.commands
 
+import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.runBlocking
 import org.apache.lucene.analysis.standard.StandardAnalyzer
 import org.apache.lucene.index.DirectoryReader
@@ -21,8 +22,7 @@ class ListAll : Callable<Int> {
             val registeredPathsService = LuceneFindRegisteredPathsService(StandardAnalyzer()) { IndexSearcher(it) }
             runBlocking {
                 val searchResults = registeredPathsService.listAll()
-                for (result in searchResults)
-                    println(result.path)
+                searchResults.consumeEach { println(it.path) }
             }
         }
         return 0

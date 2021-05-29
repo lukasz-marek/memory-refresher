@@ -5,6 +5,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.SendChannel
+import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.apache.lucene.analysis.Analyzer
@@ -53,8 +54,7 @@ class LuceneFindRegisteredPathsService(
             }
 
             launch {
-                for (scoreDoc in searchResults)
-                    results.send(indexSearcher.fetchPath(scoreDoc))
+                searchResults.consumeEach { results.send(indexSearcher.fetchPath(it)) }
                 results.close()
             }
         }

@@ -1,5 +1,6 @@
 package org.lmarek.memory.refresher.document
 
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -107,6 +108,33 @@ class LuceneRegisterDocumentServiceTest {
             // then
             val indexReader = createIndexReader(tempDir)
             expectThat(indexReader.numDocs()).isEqualTo(0)
+        }
+    }
+
+    @Nested
+    inner class TestRemoveMany {
+
+        @Test
+        fun `should remove all passed documents`(@TempDir tempDir: Path) = runBlocking<Unit> {
+            // given
+            val indexWriter = createIndexWriter(tempDir)
+            val tested = LuceneRegisterDocumentService(indexWriter)
+            val documentPaths = (1..100).map { DocumentPath("/path/to/document$it") }
+            for (path in documentPaths) {
+                tested.register(Document(path, "identical content"))
+            }
+            val toRemove = Channel<DocumentPath>(Channel.UNLIMITED)
+            for (documentPath in documentPaths.take(21)) {
+                toRemove.send(documentPath)
+            }
+            toRemove.close()
+
+            // when
+            tested.unregister(toRemove)
+
+            // then
+            val indexReader = createIndexReader(tempDir)
+            expectThat(indexReader.numDocs()).isEqualTo(79)
         }
     }
 }

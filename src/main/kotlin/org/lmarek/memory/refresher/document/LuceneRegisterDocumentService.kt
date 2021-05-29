@@ -1,6 +1,8 @@
 package org.lmarek.memory.refresher.document
 
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.ReceiveChannel
+import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.yield
 import org.apache.lucene.document.Field
@@ -25,13 +27,27 @@ class LuceneRegisterDocumentService(private val indexWriter: IndexWriter) : Regi
         }
     }
 
+    override suspend fun unregister(paths: ReceiveChannel<DocumentPath>) {
+        withContext(Dispatchers.IO) {
+            paths.consumeEach {
+                unregisterOne(it)
+                yield()
+            }
+            indexWriter.commit()
+        }
+    }
+
     override suspend fun unregister(path: DocumentPath) {
         withContext(Dispatchers.IO) {
-            val searchTerm = Term(PATH_FIELD, path.value)
-            indexWriter.deleteDocuments(searchTerm)
+            unregisterOne(path)
             yield()
             indexWriter.commit()
         }
+    }
+
+    private fun unregisterOne(path: DocumentPath) {
+        val searchTerm = Term(PATH_FIELD, path.value)
+        indexWriter.deleteDocuments(searchTerm)
     }
 
     private fun Document.toLuceneDocument(): LuceneDocument {
