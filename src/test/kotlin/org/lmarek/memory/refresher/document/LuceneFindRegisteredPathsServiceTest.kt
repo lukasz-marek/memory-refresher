@@ -45,8 +45,7 @@ class LuceneFindRegisteredPathsServiceTest {
         )
         registerDocumentService.register(Document(path = DocumentPath("/document/with/empty"), content = "I'm empty"))
 
-        val indexSearcher = IndexSearcher(createIndexReader(tempDir))
-        val tested = LuceneFindRegisteredPathsService(createAnalyzer(), indexSearcher)
+        val tested = LuceneFindRegisteredPathsService(createAnalyzer()) { IndexSearcher(createIndexReader(tempDir)) }
         val query = DocumentQuery(queryValue, 1)
 
         // when
@@ -62,8 +61,7 @@ class LuceneFindRegisteredPathsServiceTest {
     fun `should return empty list for unmatched document`() = runBlocking<Unit> {
         // given
         registerDocumentService.register(Document(DocumentPath("/unmatched"), ""))
-        val indexSearcher = IndexSearcher(createIndexReader(tempDir))
-        val tested = LuceneFindRegisteredPathsService(createAnalyzer(), indexSearcher)
+        val tested = LuceneFindRegisteredPathsService(createAnalyzer()) { IndexSearcher(createIndexReader(tempDir)) }
         val query = DocumentQuery("nothing", 1)
 
         // when
@@ -80,8 +78,7 @@ class LuceneFindRegisteredPathsServiceTest {
         for (i in 1..100) {
             registerDocumentService.register(Document(DocumentPath("/document_$i"), "match"))
         }
-        val indexSearcher = IndexSearcher(createIndexReader(tempDir))
-        val tested = LuceneFindRegisteredPathsService(createAnalyzer(), indexSearcher)
+        val tested = LuceneFindRegisteredPathsService(createAnalyzer()) { IndexSearcher(createIndexReader(tempDir)) }
         val query = DocumentQuery("match", count)
 
         // when
@@ -98,8 +95,7 @@ class LuceneFindRegisteredPathsServiceTest {
         for (i in 1..5) {
             registerDocumentService.register(Document(DocumentPath("/document_$i"), "match"))
         }
-        val indexSearcher = IndexSearcher(createIndexReader(tempDir))
-        val tested = LuceneFindRegisteredPathsService(createAnalyzer(), indexSearcher)
+        val tested = LuceneFindRegisteredPathsService(createAnalyzer()) { IndexSearcher(createIndexReader(tempDir)) }
         val query = DocumentQuery("match", 100)
 
         // when

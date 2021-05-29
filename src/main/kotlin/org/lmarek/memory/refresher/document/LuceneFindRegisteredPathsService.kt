@@ -20,7 +20,7 @@ private const val CONTENT_FIELD = "content"
 
 class LuceneFindRegisteredPathsService(
     analyzer: Analyzer,
-    private val indexSearcher: IndexSearcher
+    private val indexSearcherProvider: () -> IndexSearcher
 ) : FindRegisteredPathsService {
     private val queryParser = QueryParser(CONTENT_FIELD, analyzer)
     private val resultsPerPage = 5
@@ -28,6 +28,8 @@ class LuceneFindRegisteredPathsService(
     override suspend fun findMatching(query: DocumentQuery): ReceiveChannel<RegisteredPath> {
         val results = Channel<RegisteredPath>(capacity = Channel.UNLIMITED)
         withContext(Dispatchers.IO) { // IO to make sure there is always a thread available in case of blocking calls
+            val indexSearcher =
+                indexSearcherProvider() // fresh instance for each search to make sure we get fresh results
             val luceneQuery = queryParser.parse(query.query)
             val firstPageDeferred = async {
                 indexSearcher.search(luceneQuery, min(resultsPerPage, query.maxResults))
@@ -40,14 +42,14 @@ class LuceneFindRegisteredPathsService(
                 if (shouldFetchMultiplePages(firstPage, query)) {
                     val remaining = query.maxResults - firstPage.scoreDocs.size
                     val previousPage = firstPage.scoreDocs
-                    fetchRemainingDocs(luceneQuery, remaining, previousPage, searchResults)
+                    fetchRemainingDocs(luceneQuery, remaining, previousPage, searchResults, indexSearcher)
                 }
                 searchResults.close()
             }
 
             launch {
                 for (scoreDoc in searchResults)
-                    results.send(fetchPath(scoreDoc))
+                    results.send(indexSearcher.fetchPath(scoreDoc))
                 results.close()
             }
         }
@@ -59,13 +61,14 @@ class LuceneFindRegisteredPathsService(
         query: Query,
         remaining: Int,
         previousPage: Array<out ScoreDoc>,
-        searchResults: SendChannel<ScoreDoc>
+        searchResults: SendChannel<ScoreDoc>,
+        indexSearcher: IndexSearcher
     ) {
         if (remaining <= 0 || previousPage.isEmpty())
             return
 
         val limit = min(resultsPerPage, remaining)
-        val currentPage = fetchMore(previousPage.last(), query, limit)
+        val currentPage = indexSearcher.fetchMore(previousPage.last(), query, limit)
         for (scoreDoc in currentPage)
             searchResults.send(scoreDoc)
 
@@ -73,7 +76,8 @@ class LuceneFindRegisteredPathsService(
             query = query,
             remaining = remaining - currentPage.size,
             previousPage = currentPage,
-            searchResults = searchResults
+            searchResults = searchResults,
+            indexSearcher = indexSearcher
         )
     }
 
@@ -84,13 +88,13 @@ class LuceneFindRegisteredPathsService(
     }
 
 
-    private fun fetchMore(last: ScoreDoc, query: Query, limit: Int): Array<ScoreDoc> {
-        val page = indexSearcher.searchAfter(last, query, limit)
+    private fun IndexSearcher.fetchMore(last: ScoreDoc, query: Query, limit: Int): Array<ScoreDoc> {
+        val page = searchAfter(last, query, limit)
         return page.scoreDocs
     }
 
-    private fun fetchPath(scoreDoc: ScoreDoc): RegisteredPath {
-        val document = indexSearcher.doc(scoreDoc.doc)
+    private fun IndexSearcher.fetchPath(scoreDoc: ScoreDoc): RegisteredPath {
+        val document = doc(scoreDoc.doc)
         val path = document[PATH_FIELD]
         val id = scoreDoc.doc
         return RegisteredPath(id, path)

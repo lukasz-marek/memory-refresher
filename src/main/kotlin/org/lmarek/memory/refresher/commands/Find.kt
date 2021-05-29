@@ -23,7 +23,7 @@ class Find : Callable<Int> {
     override fun call(): Int {
         createIndexReader(Paths.get(getIndexDirectoryPath())).use {
             val registeredPathsService =
-                LuceneFindRegisteredPathsService(StandardAnalyzer(), IndexSearcher(it))
+                LuceneFindRegisteredPathsService(StandardAnalyzer()) { IndexSearcher(it) }
             val documentQuery = DocumentQuery(query.joinToString(separator = " "), Int.MAX_VALUE)
             runBlocking {
                 val searchResults = registeredPathsService.findMatching(documentQuery)
