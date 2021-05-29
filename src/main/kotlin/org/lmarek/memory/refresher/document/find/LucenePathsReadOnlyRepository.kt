@@ -41,32 +41,30 @@ class LucenePathsReadOnlyRepository(
                 if (shouldFetchMultiplePages(firstPage, limit)) {
                     val remaining = limit - firstPage.scoreDocs.size
                     val previousPage = firstPage.scoreDocs
-                    fetchRemainingDocs(query, remaining, previousPage, this, indexSearcher)
+                    indexSearcher.fetchRemainingDocs(query, remaining, previousPage, this)
                 }
             }
         }
     }
 
-    private tailrec suspend fun fetchRemainingDocs(
+    private tailrec suspend fun IndexSearcher.fetchRemainingDocs(
         query: Query,
         remaining: Int,
         previousPage: Array<out ScoreDoc>,
         searchResults: FlowCollector<DocumentPath>,
-        indexSearcher: IndexSearcher
     ) {
         if (remaining <= 0 || previousPage.isEmpty())
             return
 
         val limit = min(resultsPerPage, remaining)
-        val currentPage = indexSearcher.fetchMore(previousPage.last(), query, limit)
-        currentPage.onEach { searchResults.emit(indexSearcher.fetchPath(it)) }
+        val currentPage = fetchMore(previousPage.last(), query, limit)
+        currentPage.onEach { searchResults.emit(fetchPath(it)) }
 
         fetchRemainingDocs(
             query = query,
             remaining = remaining - currentPage.size,
             previousPage = currentPage,
-            searchResults = searchResults,
-            indexSearcher = indexSearcher
+            searchResults = searchResults
         )
     }
 
