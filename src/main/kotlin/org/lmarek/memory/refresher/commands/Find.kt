@@ -1,6 +1,6 @@
 package org.lmarek.memory.refresher.commands
 
-import kotlinx.coroutines.channels.consumeEach
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.runBlocking
 import org.apache.lucene.analysis.standard.StandardAnalyzer
 import org.apache.lucene.index.DirectoryReader
@@ -28,7 +28,7 @@ class Find : Callable<Int> {
             val documentQuery = DocumentQuery(query.joinToString(separator = " "), Int.MAX_VALUE)
             runBlocking {
                 val searchResults = registeredPathsService.findMatching(documentQuery)
-                searchResults.consumeEach { println(it.value) }
+                searchResults.collect { println(it.value) }
             }
         }
         return 0

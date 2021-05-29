@@ -1,8 +1,8 @@
 package org.lmarek.memory.refresher.document.register
 
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.channels.ReceiveChannel
-import kotlinx.coroutines.channels.consumeEach
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.yield
 import org.apache.lucene.document.Field
@@ -29,9 +29,9 @@ class LucenePathsWriteOnlyRepository(private val indexWriter: IndexWriter) : Pat
         }
     }
 
-    override suspend fun unregister(paths: ReceiveChannel<DocumentPath>) {
+    override suspend fun unregister(paths: Flow<DocumentPath>) {
         withContext(Dispatchers.IO) {
-            paths.consumeEach {
+            paths.collect {
                 unregisterOne(it)
                 yield()
             }

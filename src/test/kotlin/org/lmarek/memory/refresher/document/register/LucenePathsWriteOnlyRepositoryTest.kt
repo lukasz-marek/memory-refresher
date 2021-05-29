@@ -1,6 +1,6 @@
 package org.lmarek.memory.refresher.document.register
 
-import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -125,11 +125,11 @@ class LucenePathsWriteOnlyRepositoryTest {
             for (path in documentPaths) {
                 tested.register(Document(path, "identical content"))
             }
-            val toRemove = Channel<DocumentPath>(Channel.UNLIMITED)
-            for (documentPath in documentPaths.take(21)) {
-                toRemove.send(documentPath)
+            val toRemove = flow {
+                for (documentPath in documentPaths.take(21)) {
+                    emit(documentPath)
+                }
             }
-            toRemove.close()
 
             // when
             tested.unregister(toRemove)

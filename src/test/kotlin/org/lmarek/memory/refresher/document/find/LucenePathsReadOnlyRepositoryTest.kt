@@ -1,6 +1,6 @@
 package org.lmarek.memory.refresher.document.find
 
-import kotlinx.coroutines.channels.toList
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import org.apache.lucene.index.IndexWriter
 import org.apache.lucene.search.IndexSearcher

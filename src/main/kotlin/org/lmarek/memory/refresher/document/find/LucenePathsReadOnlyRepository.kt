@@ -1,12 +1,9 @@
 package org.lmarek.memory.refresher.document.find
 
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.channels.ReceiveChannel
-import kotlinx.coroutines.channels.SendChannel
-import kotlinx.coroutines.channels.consumeEach
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.FlowCollector
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.withContext
 import org.apache.lucene.analysis.Analyzer
 import org.apache.lucene.queryparser.classic.QueryParser
@@ -24,49 +21,37 @@ class LucenePathsReadOnlyRepository(
     private val queryParser = QueryParser(CONTENT_FIELD, analyzer)
     private val resultsPerPage = 5
 
-    override suspend fun findMatching(query: DocumentQuery): ReceiveChannel<DocumentPath> {
+    override suspend fun findMatching(query: DocumentQuery): Flow<DocumentPath> {
         val luceneQuery = queryParser.parse(query.query)
         return find(luceneQuery, query.maxResults)
     }
 
-    override suspend fun listAll(): ReceiveChannel<DocumentPath> {
+    override suspend fun listAll(): Flow<DocumentPath> {
         return find(MatchAllDocsQuery(), Int.MAX_VALUE)
     }
 
-    private suspend fun find(query: Query, limit: Int): ReceiveChannel<DocumentPath> {
-        val results = Channel<DocumentPath>(capacity = Channel.UNLIMITED)
-        withContext(Dispatchers.IO) { // IO to make sure there is always a thread available in case of blocking calls
+    private suspend fun find(query: Query, limit: Int): Flow<DocumentPath> {
+        return withContext(Dispatchers.IO) { // IO to make sure there is always a thread available in case of blocking calls
             val indexSearcher =
                 indexSearcherProvider() // fresh instance for each search to make sure we get fresh results
-            val firstPageDeferred = async {
-                indexSearcher.search(query, min(resultsPerPage, limit))
-            }
 
-            val searchResults = Channel<ScoreDoc>(capacity = resultsPerPage)
-            launch {
-                val firstPage = firstPageDeferred.await()
-                firstPage.scoreDocs.forEach { searchResults.send(it) }
+            flow {
+                val firstPage = indexSearcher.search(query, min(resultsPerPage, limit))
+                firstPage.scoreDocs.forEach { emit(indexSearcher.fetchPath(it)) }
                 if (shouldFetchMultiplePages(firstPage, limit)) {
                     val remaining = limit - firstPage.scoreDocs.size
                     val previousPage = firstPage.scoreDocs
-                    fetchRemainingDocs(query, remaining, previousPage, searchResults, indexSearcher)
+                    fetchRemainingDocs(query, remaining, previousPage, this, indexSearcher)
                 }
-                searchResults.close()
-            }
-
-            launch {
-                searchResults.consumeEach { results.send(indexSearcher.fetchPath(it)) }
-                results.close()
             }
         }
-        return results
     }
 
     private tailrec suspend fun fetchRemainingDocs(
         query: Query,
         remaining: Int,
         previousPage: Array<out ScoreDoc>,
-        searchResults: SendChannel<ScoreDoc>,
+        searchResults: FlowCollector<DocumentPath>,
         indexSearcher: IndexSearcher
     ) {
         if (remaining <= 0 || previousPage.isEmpty())
@@ -74,8 +59,7 @@ class LucenePathsReadOnlyRepository(
 
         val limit = min(resultsPerPage, remaining)
         val currentPage = indexSearcher.fetchMore(previousPage.last(), query, limit)
-        for (scoreDoc in currentPage)
-            searchResults.send(scoreDoc)
+        currentPage.onEach { searchResults.emit(indexSearcher.fetchPath(it)) }
 
         fetchRemainingDocs(
             query = query,

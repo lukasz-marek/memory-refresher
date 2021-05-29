@@ -3,8 +3,8 @@ package org.lmarek.memory.refresher.document.refresh
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ReceiveChannel
-import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.lmarek.memory.refresher.document.Document
@@ -25,7 +25,7 @@ class RefreshDocumentsServiceImpl(
         val output = Channel<RefreshResult>(Channel.UNLIMITED)
         coroutineScope {
             launch {
-                allDocuments.consumeEach { path ->
+                allDocuments.collect { path ->
                     val refreshedDocument = loadDocument(path)
                     if (refreshedDocument != null) {
                         writeOnlyRepository.register(refreshedDocument)
