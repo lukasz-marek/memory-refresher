@@ -9,10 +9,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.apache.lucene.analysis.Analyzer
 import org.apache.lucene.queryparser.classic.QueryParser
-import org.apache.lucene.search.IndexSearcher
-import org.apache.lucene.search.Query
-import org.apache.lucene.search.ScoreDoc
-import org.apache.lucene.search.TopDocs
+import org.apache.lucene.search.*
 import kotlin.math.min
 
 private const val PATH_FIELD = "path"
@@ -26,23 +23,31 @@ class LuceneFindRegisteredPathsService(
     private val resultsPerPage = 5
 
     override suspend fun findMatching(query: DocumentQuery): ReceiveChannel<RegisteredPath> {
+        val luceneQuery = queryParser.parse(query.query)
+        return find(luceneQuery, query.maxResults)
+    }
+
+    override suspend fun listAll(): ReceiveChannel<RegisteredPath> {
+        return find(MatchAllDocsQuery(), Int.MAX_VALUE)
+    }
+
+    private suspend fun find(query: Query, limit: Int): ReceiveChannel<RegisteredPath> {
         val results = Channel<RegisteredPath>(capacity = Channel.UNLIMITED)
         withContext(Dispatchers.IO) { // IO to make sure there is always a thread available in case of blocking calls
             val indexSearcher =
                 indexSearcherProvider() // fresh instance for each search to make sure we get fresh results
-            val luceneQuery = queryParser.parse(query.query)
             val firstPageDeferred = async {
-                indexSearcher.search(luceneQuery, min(resultsPerPage, query.maxResults))
+                indexSearcher.search(query, min(resultsPerPage, limit))
             }
 
             val searchResults = Channel<ScoreDoc>(capacity = resultsPerPage)
             launch {
                 val firstPage = firstPageDeferred.await()
                 firstPage.scoreDocs.forEach { searchResults.send(it) }
-                if (shouldFetchMultiplePages(firstPage, query)) {
-                    val remaining = query.maxResults - firstPage.scoreDocs.size
+                if (shouldFetchMultiplePages(firstPage, limit)) {
+                    val remaining = limit - firstPage.scoreDocs.size
                     val previousPage = firstPage.scoreDocs
-                    fetchRemainingDocs(luceneQuery, remaining, previousPage, searchResults, indexSearcher)
+                    fetchRemainingDocs(query, remaining, previousPage, searchResults, indexSearcher)
                 }
                 searchResults.close()
             }
@@ -53,7 +58,6 @@ class LuceneFindRegisteredPathsService(
                 results.close()
             }
         }
-
         return results
     }
 
@@ -81,9 +85,9 @@ class LuceneFindRegisteredPathsService(
         )
     }
 
-    private fun shouldFetchMultiplePages(firstPage: TopDocs, query: DocumentQuery): Boolean {
+    private fun shouldFetchMultiplePages(firstPage: TopDocs, limit: Int): Boolean {
         val moreResultsExists = firstPage.totalHits.value > firstPage.scoreDocs.size
-        val queryRequestsMoreThanReturned = firstPage.scoreDocs.size < query.maxResults
+        val queryRequestsMoreThanReturned = firstPage.scoreDocs.size < limit
         return moreResultsExists && queryRequestsMoreThanReturned
     }
 
