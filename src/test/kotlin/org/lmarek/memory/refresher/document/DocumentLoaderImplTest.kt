@@ -10,9 +10,9 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 
-class DocumentLoaderTest {
+class DocumentLoaderImplTest {
 
-    private val tested = DocumentLoader()
+    private val tested = DocumentLoaderImpl()
 
     @Test
     fun `should load file into a document if it exists`(@TempDir tempDir: Path) {

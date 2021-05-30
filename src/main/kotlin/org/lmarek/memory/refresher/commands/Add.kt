@@ -5,7 +5,7 @@ import org.apache.lucene.analysis.standard.StandardAnalyzer
 import org.apache.lucene.index.IndexWriter
 import org.apache.lucene.index.IndexWriterConfig
 import org.apache.lucene.store.FSDirectory
-import org.lmarek.memory.refresher.document.DocumentLoader
+import org.lmarek.memory.refresher.document.DocumentLoaderImpl
 import org.lmarek.memory.refresher.document.register.LucenePathsWriteOnlyRepository
 import picocli.CommandLine
 import java.io.File
@@ -18,7 +18,7 @@ class Add : Callable<Int> {
     @CommandLine.Parameters(index = "0", description = ["File to be added to index"])
     private lateinit var fileToBeIndexed: File
 
-    private val documentLoader = DocumentLoader()
+    private val documentLoader = DocumentLoaderImpl()
 
     override fun call(): Int {
         createIndexDirectoryIfNotExists()

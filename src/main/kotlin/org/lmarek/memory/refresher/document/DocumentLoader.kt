@@ -1,17 +1,9 @@
 package org.lmarek.memory.refresher.document
 
 import java.io.File
-import java.io.IOException
 
-class DocumentLoader {
-
+interface DocumentLoader {
     class DocumentLoaderException(cause: Throwable) : Exception(cause)
 
-    fun load(file: File): Document {
-        try {
-            return Document(DocumentPath(file.canonicalPath), file.readText())
-        } catch (exception: IOException) {
-            throw DocumentLoaderException(exception)
-        }
-    }
+    fun load(file: File): Document
 }
