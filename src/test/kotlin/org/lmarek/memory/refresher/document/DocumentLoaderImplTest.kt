@@ -1,5 +1,6 @@
 package org.lmarek.memory.refresher.document
 
+import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import strikt.api.expectThat
@@ -15,7 +16,7 @@ class DocumentLoaderImplTest {
     private val tested = DocumentLoaderImpl()
 
     @Test
-    fun `should load file into a document if it exists`(@TempDir tempDir: Path) {
+    fun `should load file into a document if it exists`(@TempDir tempDir: Path) = runBlocking<Unit> {
         // given
         val existingFilePath = tempDir.resolve("existing_file.txt")
         Files.write(existingFilePath, listOf("some content"))
@@ -31,7 +32,7 @@ class DocumentLoaderImplTest {
     }
 
     @Test
-    fun `should throw if file does not exist`(@TempDir tempDir: Path) {
+    fun `should throw if file does not exist`(@TempDir tempDir: Path) = runBlocking<Unit> {
         // given
         val nonExistentFilePath = tempDir.resolve("non_existent_file.txt")
 

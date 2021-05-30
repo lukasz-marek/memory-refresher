@@ -24,8 +24,8 @@ class Add : Callable<Int> {
         createIndexDirectoryIfNotExists()
         createIndexWriter().use {
             val documentRepository = LucenePathsWriteOnlyRepository(it)
-            val newDocument = documentLoader.load(fileToBeIndexed)
             runBlocking {
+                val newDocument = documentLoader.load(fileToBeIndexed)
                 documentRepository.register(newDocument)
             }
         }

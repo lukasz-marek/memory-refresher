@@ -5,5 +5,5 @@ import java.io.File
 interface DocumentLoader {
     class DocumentLoaderException(cause: Throwable) : Exception(cause)
 
-    fun load(file: File): Document
+    suspend fun load(file: File): Document
 }
