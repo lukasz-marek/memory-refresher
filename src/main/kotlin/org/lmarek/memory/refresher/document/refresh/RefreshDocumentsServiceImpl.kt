@@ -81,13 +81,12 @@ class RefreshDocumentsServiceImpl(
         toReload.close()
     }
 
-    private suspend fun loadDocument(path: DocumentPath): Document? {
-        return withContext(Dispatchers.IO) {
-            try {
-                documentLoader.load(File(path.value))
-            } catch (exception: DocumentLoader.DocumentLoaderException) {
-                null
-            }
+    private suspend fun loadDocument(path: DocumentPath): Document? = withContext(Dispatchers.IO) {
+        try {
+            documentLoader.load(File(path.value))
+        } catch (exception: DocumentLoader.DocumentLoaderException) {
+            null
         }
     }
+
 }
