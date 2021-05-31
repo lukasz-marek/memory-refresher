@@ -1,5 +1,6 @@
 package org.lmarek.memory.refresher.commands
 
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.runBlocking
 import org.apache.lucene.analysis.standard.StandardAnalyzer
@@ -24,6 +25,7 @@ import java.util.concurrent.Callable
 class Refresh : Callable<Int> {
     private val documentLoader = DocumentLoaderImpl()
 
+    @ExperimentalCoroutinesApi
     override fun call(): Int {
         createIndexDirectoryIfNotExists()
         createIndexWriter().use {

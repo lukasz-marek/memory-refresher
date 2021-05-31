@@ -1,10 +1,8 @@
 package org.lmarek.memory.refresher.document.refresh
 
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.*
 import org.lmarek.memory.refresher.document.Document
 import org.lmarek.memory.refresher.document.DocumentLoader
 import org.lmarek.memory.refresher.document.DocumentPath
@@ -18,11 +16,44 @@ class RefreshDocumentsServiceImpl(
     private val documentLoader: DocumentLoader
 ) : RefreshDocumentsService {
 
+    private val channelCapacity = 10
+
+    @ExperimentalCoroutinesApi
     override suspend fun refreshAll(): Flow<RefreshResult> {
-        val allDocuments = readOnlyRepository.listAll()
         return flow {
-            allDocuments.collect { path ->
-                emit(refresh(path))
+            val allDocuments = readOnlyRepository.listAll()
+
+            coroutineScope {
+                val deletions = Channel<DocumentPath>(channelCapacity)
+                val reloads = Channel<Document>(channelCapacity)
+                launch {
+                    allDocuments.collect { path ->
+                        val document = loadDocument(path)
+                        if (document == null)
+                            deletions.send(path)
+                        else
+                            reloads.send(document)
+                    }
+                    deletions.close()
+                    reloads.close()
+                }
+                val deletionResults = Channel<RefreshResult>(channelCapacity)
+                val reloadResults = Channel<RefreshResult>(channelCapacity)
+                launch {
+                    writeOnlyRepository.unregister(deletions.consumeAsFlow().onEach {
+                        deletionResults.send(RefreshResult(it, RefreshType.DELETE))
+                    })
+                    deletionResults.close()
+                }
+                launch {
+                    writeOnlyRepository.register(reloads.consumeAsFlow().onEach {
+                        reloadResults.send(RefreshResult(it.path, RefreshType.RELOAD))
+                    })
+                    reloadResults.close()
+                }
+                merge(deletionResults.consumeAsFlow(), reloadResults.consumeAsFlow()).collect {
+                    emit(it)
+                }
             }
         }
     }
