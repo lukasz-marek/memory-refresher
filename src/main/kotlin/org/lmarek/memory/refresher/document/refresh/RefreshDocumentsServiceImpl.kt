@@ -27,12 +27,16 @@ class RefreshDocumentsServiceImpl(
                 val deletions = Channel<DocumentPath>(channelCapacity)
                 val reloads = Channel<Document>(channelCapacity)
                 launch {
-                    allDocuments.collect { path ->
-                        val document = loadDocument(path)
-                        if (document == null)
-                            deletions.send(path)
-                        else
-                            reloads.send(document)
+                    coroutineScope {
+                        allDocuments.collect { path ->
+                            launch {
+                                val document = loadDocument(path)
+                                if (document == null)
+                                    deletions.send(path)
+                                else
+                                    reloads.send(document)
+                            }
+                        }
                     }
                     deletions.close()
                     reloads.close()
