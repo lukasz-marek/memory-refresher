@@ -2,6 +2,7 @@ package org.lmarek.memory.refresher.document.refresh
 
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.flow.*
 import org.lmarek.memory.refresher.document.Document
 import org.lmarek.memory.refresher.document.DocumentLoader
@@ -23,29 +24,40 @@ class RefreshDocumentsServiceImpl(
         return flow {
             coroutineScope {
                 val allDocuments = readOnlyRepository.listAll()
+
                 val pathsToDelete = Channel<DocumentPath>(channelCapacity)
                 val pathsToReload = Channel<Document>(channelCapacity)
-                launch {
-                    splitDocumentPaths(allDocuments, pathsToDelete, pathsToReload)
-                }
-                val deletionResults = Channel<RefreshResult>(channelCapacity)
-                val reloadResults = Channel<RefreshResult>(channelCapacity)
-                launch {
-                    writeOnlyRepository.unregister(pathsToDelete.consumeAsFlow().onEach {
-                        deletionResults.send(RefreshResult(it, RefreshType.DELETE))
-                    })
-                    deletionResults.close()
-                }
-                launch {
-                    writeOnlyRepository.register(pathsToReload.consumeAsFlow().onEach {
-                        reloadResults.send(RefreshResult(it.path, RefreshType.RELOAD))
-                    })
-                    reloadResults.close()
-                }
-                merge(deletionResults.consumeAsFlow(), reloadResults.consumeAsFlow()).collect {
-                    emit(it)
-                }
+                launch { splitDocumentPaths(allDocuments, pathsToDelete, pathsToReload) }
+
+                val results = merge(unregister(pathsToDelete), reload(pathsToReload))
+                results.collect { emit(it) }
             }
+        }
+    }
+
+    private fun unregister(pathsToDelete: Channel<DocumentPath>): Flow<RefreshResult> = flow {
+        coroutineScope {
+            val results = Channel<RefreshResult>()
+            launch {
+                writeOnlyRepository.unregister(pathsToDelete.consumeAsFlow().onEach {
+                    results.send(RefreshResult(it, RefreshType.DELETE))
+                })
+                results.close()
+            }
+            results.consumeEach { emit(it) }
+        }
+    }
+
+    private fun reload(pathsToReload: Channel<Document>): Flow<RefreshResult> = flow {
+        coroutineScope {
+            val results = Channel<RefreshResult>()
+            launch {
+                writeOnlyRepository.register(pathsToReload.consumeAsFlow().onEach {
+                    results.send(RefreshResult(it.path, RefreshType.RELOAD))
+                })
+                results.close()
+            }
+            results.consumeEach { emit(it) }
         }
     }
 
@@ -68,6 +80,7 @@ class RefreshDocumentsServiceImpl(
         toDelete.close()
         toReload.close()
     }
+
     private suspend fun loadDocument(path: DocumentPath): Document? {
         return withContext(Dispatchers.IO) {
             try {
