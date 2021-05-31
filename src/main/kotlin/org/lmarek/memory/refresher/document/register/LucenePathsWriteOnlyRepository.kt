@@ -21,10 +21,18 @@ class LucenePathsWriteOnlyRepository(private val indexWriter: IndexWriter) : Pat
 
     override suspend fun register(document: Document) {
         withContext(Dispatchers.IO) {
-            val luceneDocument = document.toLuceneDocument()
-            val searchTerm = Term(PATH_FIELD, document.path.value)
-            indexWriter.updateDocument(searchTerm, luceneDocument)
+            registerOne(document)
             yield()
+            indexWriter.commit()
+        }
+    }
+
+    override suspend fun register(documents: Flow<Document>) {
+        withContext(Dispatchers.IO) {
+            documents.collect {
+                registerOne(it)
+                yield()
+            }
             indexWriter.commit()
         }
     }
@@ -45,6 +53,12 @@ class LucenePathsWriteOnlyRepository(private val indexWriter: IndexWriter) : Pat
             yield()
             indexWriter.commit()
         }
+    }
+
+    private fun registerOne(document: Document) {
+        val luceneDocument = document.toLuceneDocument()
+        val searchTerm = Term(PATH_FIELD, document.path.value)
+        indexWriter.updateDocument(searchTerm, luceneDocument)
     }
 
     private fun unregisterOne(path: DocumentPath) {

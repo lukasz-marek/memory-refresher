@@ -5,6 +5,8 @@ import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
 import org.lmarek.memory.refresher.document.Document
 import org.lmarek.memory.refresher.document.DocumentPath
 import strikt.api.expectThat
@@ -137,6 +139,33 @@ class LucenePathsWriteOnlyRepositoryTest {
             // then
             val indexReader = createIndexReader(tempDir)
             expectThat(indexReader.numDocs()).isEqualTo(79)
+        }
+    }
+
+    @Nested
+    inner class TestSaveMany {
+
+        @TempDir
+        lateinit var tempDir: Path
+
+        @ParameterizedTest
+        @ValueSource(ints = [1, 2, 3, 10, 15, 150])
+        fun `save x documents should be successful`(count: Int) = runBlocking<Unit> {
+            // given
+            val indexWriter = createIndexWriter(tempDir)
+            val tested = LucenePathsWriteOnlyRepository(indexWriter)
+            val toRegister = flow {
+                for (i in 1..count) {
+                    emit(Document(DocumentPath("/path/to/document$i"), "identical content"))
+                }
+            }
+
+            // when
+            tested.register(toRegister)
+
+            // then
+            val indexReader = createIndexReader(tempDir)
+            expectThat(indexReader.numDocs()).isEqualTo(count)
         }
     }
 }
