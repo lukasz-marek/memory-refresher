@@ -21,36 +21,23 @@ class RefreshDocumentsServiceImpl(
     @ExperimentalCoroutinesApi
     override suspend fun refreshAll(): Flow<RefreshResult> {
         return flow {
-            val allDocuments = readOnlyRepository.listAll()
-
             coroutineScope {
-                val deletions = Channel<DocumentPath>(channelCapacity)
-                val reloads = Channel<Document>(channelCapacity)
+                val allDocuments = readOnlyRepository.listAll()
+                val pathsToDelete = Channel<DocumentPath>(channelCapacity)
+                val pathsToReload = Channel<Document>(channelCapacity)
                 launch {
-                    coroutineScope {
-                        allDocuments.collect { path ->
-                            launch {
-                                val document = loadDocument(path)
-                                if (document == null)
-                                    deletions.send(path)
-                                else
-                                    reloads.send(document)
-                            }
-                        }
-                    }
-                    deletions.close()
-                    reloads.close()
+                    splitDocumentPaths(allDocuments, pathsToDelete, pathsToReload)
                 }
                 val deletionResults = Channel<RefreshResult>(channelCapacity)
                 val reloadResults = Channel<RefreshResult>(channelCapacity)
                 launch {
-                    writeOnlyRepository.unregister(deletions.consumeAsFlow().onEach {
+                    writeOnlyRepository.unregister(pathsToDelete.consumeAsFlow().onEach {
                         deletionResults.send(RefreshResult(it, RefreshType.DELETE))
                     })
                     deletionResults.close()
                 }
                 launch {
-                    writeOnlyRepository.register(reloads.consumeAsFlow().onEach {
+                    writeOnlyRepository.register(pathsToReload.consumeAsFlow().onEach {
                         reloadResults.send(RefreshResult(it.path, RefreshType.RELOAD))
                     })
                     reloadResults.close()
@@ -62,18 +49,25 @@ class RefreshDocumentsServiceImpl(
         }
     }
 
-    private suspend fun refresh(path: DocumentPath): RefreshResult {
-        val refreshedDocument = loadDocument(path)
-        val refreshType = if (refreshedDocument != null) {
-            writeOnlyRepository.register(refreshedDocument)
-            RefreshType.RELOAD
-        } else {
-            writeOnlyRepository.unregister(path)
-            RefreshType.DELETE
+    private suspend fun splitDocumentPaths(
+        allDocuments: Flow<DocumentPath>,
+        toDelete: Channel<DocumentPath>,
+        toReload: Channel<Document>
+    ) {
+        coroutineScope {
+            allDocuments.collect { path ->
+                launch {
+                    val document = loadDocument(path)
+                    if (document == null)
+                        toDelete.send(path)
+                    else
+                        toReload.send(document)
+                }
+            }
         }
-        return RefreshResult(path, refreshType)
+        toDelete.close()
+        toReload.close()
     }
-
     private suspend fun loadDocument(path: DocumentPath): Document? {
         return withContext(Dispatchers.IO) {
             try {
