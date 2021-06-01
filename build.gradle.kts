@@ -10,6 +10,7 @@ version = "1.0-SNAPSHOT"
 
 repositories {
     mavenCentral()
+    jcenter()
 }
 
 dependencies {
@@ -28,6 +29,9 @@ dependencies {
     val luceneVersion = "8.8.2"
     implementation("org.apache.lucene:lucene-core:$luceneVersion")
     implementation("org.apache.lucene:lucene-queryparser:$luceneVersion")
+
+    // dependency injection
+    implementation("org.koin:koin-core:2.2.2")
 
     // tests
     testImplementation(platform("org.junit:junit-bom:5.7.2"))

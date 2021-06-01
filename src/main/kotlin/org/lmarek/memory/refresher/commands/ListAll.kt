@@ -2,38 +2,23 @@ package org.lmarek.memory.refresher.commands
 
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.runBlocking
-import org.apache.lucene.analysis.standard.StandardAnalyzer
-import org.apache.lucene.index.DirectoryReader
-import org.apache.lucene.index.IndexReader
-import org.apache.lucene.search.IndexSearcher
-import org.apache.lucene.store.FSDirectory
-import org.lmarek.memory.refresher.document.find.LucenePathsReadOnlyRepository
+import org.koin.core.component.KoinApiExtension
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
+import org.lmarek.memory.refresher.document.find.PathsReadOnlyRepository
 import picocli.CommandLine
-import java.io.File
-import java.nio.file.Path
-import java.nio.file.Paths
 import java.util.concurrent.Callable
 
+@KoinApiExtension
 @CommandLine.Command(name = "list")
-class ListAll : Callable<Int> {
+class ListAll : Callable<Int>, KoinComponent {
+    private val readOnlyRepository by inject<PathsReadOnlyRepository>()
 
     override fun call(): Int {
-        createIndexReader(Paths.get(getIndexDirectoryPath())).use {
-            val registeredPathsService = LucenePathsReadOnlyRepository(StandardAnalyzer()) { IndexSearcher(it) }
-            runBlocking {
-                val searchResults = registeredPathsService.listAll()
-                searchResults.collect { println(it.value) }
-            }
+        runBlocking {
+            val searchResults = readOnlyRepository.listAll()
+            searchResults.collect { println(it.value) }
         }
         return 0
-    }
-
-    private fun createIndexReader(indexDirectory: Path): IndexReader {
-        return DirectoryReader.open(FSDirectory.open(indexDirectory))
-    }
-
-    private fun getIndexDirectoryPath(): String {
-        val homeDir = System.getProperty("user.home")
-        return homeDir + File.separator + ".memory_refresher" + File.separator + "index"
     }
 }

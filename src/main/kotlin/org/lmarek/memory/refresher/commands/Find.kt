@@ -2,44 +2,28 @@ package org.lmarek.memory.refresher.commands
 
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.runBlocking
-import org.apache.lucene.analysis.standard.StandardAnalyzer
-import org.apache.lucene.index.DirectoryReader
-import org.apache.lucene.index.IndexReader
-import org.apache.lucene.search.IndexSearcher
-import org.apache.lucene.store.FSDirectory
+import org.koin.core.component.KoinApiExtension
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 import org.lmarek.memory.refresher.document.find.DocumentQuery
-import org.lmarek.memory.refresher.document.find.LucenePathsReadOnlyRepository
+import org.lmarek.memory.refresher.document.find.PathsReadOnlyRepository
 import picocli.CommandLine
-import java.io.File
-import java.nio.file.Path
-import java.nio.file.Paths
 import java.util.concurrent.Callable
 
+@KoinApiExtension
 @CommandLine.Command(name = "find")
-class Find : Callable<Int> {
+class Find : Callable<Int>, KoinComponent {
+    private val readOnlyRepository by inject<PathsReadOnlyRepository>()
 
     @CommandLine.Parameters(index = "0", description = ["search query"], arity = "1..*")
     private lateinit var query: List<String>
 
     override fun call(): Int {
-        createIndexReader(Paths.get(getIndexDirectoryPath())).use {
-            val registeredPathsService =
-                LucenePathsReadOnlyRepository(StandardAnalyzer()) { IndexSearcher(it) }
+        runBlocking {
             val documentQuery = DocumentQuery(query.joinToString(separator = " "), Int.MAX_VALUE)
-            runBlocking {
-                val searchResults = registeredPathsService.findMatching(documentQuery)
-                searchResults.collect { println(it.value) }
-            }
+            val searchResults = readOnlyRepository.findMatching(documentQuery)
+            searchResults.collect { println(it.value) }
         }
         return 0
-    }
-
-    private fun createIndexReader(indexDirectory: Path): IndexReader {
-        return DirectoryReader.open(FSDirectory.open(indexDirectory))
-    }
-
-    private fun getIndexDirectoryPath(): String {
-        val homeDir = System.getProperty("user.home")
-        return homeDir + File.separator + ".memory_refresher" + File.separator + "index"
     }
 }
