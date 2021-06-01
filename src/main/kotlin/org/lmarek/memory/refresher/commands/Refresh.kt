@@ -21,8 +21,8 @@ class Refresh : Callable<Int>, KoinComponent {
         runBlocking {
             refreshDocumentsService.refreshAll().collect { refreshResult ->
                 when (refreshResult.type) {
-                    RefreshType.DELETE -> println("Deleted ${refreshResult.documentPath}")
-                    RefreshType.RELOAD -> println("Reloaded ${refreshResult.documentPath}")
+                    RefreshType.DELETE -> println("Deleted ${refreshResult.documentPath.value}")
+                    RefreshType.RELOAD -> println("Reloaded ${refreshResult.documentPath.value}")
                 }
             }
         }
