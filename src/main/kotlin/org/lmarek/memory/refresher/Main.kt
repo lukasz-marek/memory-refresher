@@ -30,6 +30,13 @@ import kotlin.system.exitProcess
 @KoinApiExtension
 fun main(args: Array<String>) {
     createIndexDirectoryIfNotExists()
+    initDependencies()
+
+    val commandResult = CommandLine(Main()).execute(*args)
+    exitProcess(commandResult)
+}
+
+private fun initDependencies() {
     val luceneModule = module {
         single { createIndexWriter() }
         factory { createIndexReader() }
@@ -47,9 +54,6 @@ fun main(args: Array<String>) {
     startKoin {
         modules(luceneModule, repositoryModule, serviceModule)
     }
-
-    val commandResult = CommandLine(Main()).execute(*args)
-    exitProcess(commandResult)
 }
 
 private fun getIndexDirectoryPath(): String {
@@ -69,7 +73,6 @@ private fun createIndexWriter(): IndexWriter {
     val analyzer = StandardAnalyzer()
     val indexWriterConfig = IndexWriterConfig(analyzer)
     indexWriterConfig.openMode = IndexWriterConfig.OpenMode.CREATE_OR_APPEND
-//        indexWriterConfig.ramBufferSizeMB = bufferSize
     return IndexWriter(directory, indexWriterConfig)
 }
 
