@@ -13,10 +13,10 @@ import org.koin.core.context.startKoin
 import org.koin.dsl.module
 import org.lmarek.memory.refresher.commands.CommandException
 import org.lmarek.memory.refresher.commands.Main
-import org.lmarek.memory.refresher.document.DocumentLoader
-import org.lmarek.memory.refresher.document.DocumentLoaderImpl
 import org.lmarek.memory.refresher.document.find.LucenePathsReadOnlyRepository
 import org.lmarek.memory.refresher.document.find.PathsReadOnlyRepository
+import org.lmarek.memory.refresher.document.loader.DocumentLoader
+import org.lmarek.memory.refresher.document.loader.DocumentLoaderImpl
 import org.lmarek.memory.refresher.document.refresh.RefreshDocumentsService
 import org.lmarek.memory.refresher.document.refresh.RefreshDocumentsServiceImpl
 import org.lmarek.memory.refresher.document.register.LucenePathsWriteOnlyRepository

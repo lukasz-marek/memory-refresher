@@ -5,9 +5,9 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.flow.*
 import org.lmarek.memory.refresher.document.Document
-import org.lmarek.memory.refresher.document.DocumentLoader
 import org.lmarek.memory.refresher.document.DocumentPath
 import org.lmarek.memory.refresher.document.find.PathsReadOnlyRepository
+import org.lmarek.memory.refresher.document.loader.DocumentLoader
 import org.lmarek.memory.refresher.document.register.PathsWriteOnlyRepository
 import java.io.File
 

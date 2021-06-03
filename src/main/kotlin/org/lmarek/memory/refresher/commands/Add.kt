@@ -4,7 +4,7 @@ import kotlinx.coroutines.runBlocking
 import org.koin.core.component.KoinApiExtension
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
-import org.lmarek.memory.refresher.document.DocumentLoader
+import org.lmarek.memory.refresher.document.loader.DocumentLoader
 import org.lmarek.memory.refresher.document.register.PathsWriteOnlyRepository
 import picocli.CommandLine
 import java.io.File

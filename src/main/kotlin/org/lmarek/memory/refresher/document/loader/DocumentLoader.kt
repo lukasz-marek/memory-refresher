@@ -1,5 +1,6 @@
-package org.lmarek.memory.refresher.document
+package org.lmarek.memory.refresher.document.loader
 
+import org.lmarek.memory.refresher.document.Document
 import java.io.File
 
 interface DocumentLoader {

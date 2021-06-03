@@ -10,10 +10,10 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
-import org.lmarek.memory.refresher.document.DocumentLoader
-import org.lmarek.memory.refresher.document.DocumentLoaderImpl
 import org.lmarek.memory.refresher.document.find.LucenePathsReadOnlyRepository
 import org.lmarek.memory.refresher.document.find.PathsReadOnlyRepository
+import org.lmarek.memory.refresher.document.loader.DocumentLoader
+import org.lmarek.memory.refresher.document.loader.DocumentLoaderImpl
 import org.lmarek.memory.refresher.document.register.LucenePathsWriteOnlyRepository
 import org.lmarek.memory.refresher.document.register.PathsWriteOnlyRepository
 import strikt.api.expectThat

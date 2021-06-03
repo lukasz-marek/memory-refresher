@@ -1,4 +1,4 @@
-package org.lmarek.memory.refresher.document
+package org.lmarek.memory.refresher.document.loader
 
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test

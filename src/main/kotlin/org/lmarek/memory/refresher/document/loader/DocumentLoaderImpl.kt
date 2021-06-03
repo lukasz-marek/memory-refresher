@@ -1,7 +1,9 @@
-package org.lmarek.memory.refresher.document
+package org.lmarek.memory.refresher.document.loader
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import org.lmarek.memory.refresher.document.Document
+import org.lmarek.memory.refresher.document.DocumentPath
 import java.io.File
 import java.io.IOException
 
