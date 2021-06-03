@@ -19,12 +19,15 @@ class Add : Callable<Int>, KoinComponent {
     @CommandLine.Parameters(index = "0", description = ["File to be added to index"])
     private lateinit var fileToBeIndexed: File
 
-    override fun call(): Int {
-        runBlocking {
+    override fun call(): Int = runBlocking {
+        try {
             val newDocument = documentLoader.load(fileToBeIndexed)
             writeOnlyRepository.register(newDocument)
+            println("${fileToBeIndexed.canonicalPath} loaded")
+            return@runBlocking 0
+        } catch (ex: DocumentLoader.DocumentLoaderException) {
+            System.err.println(ex.message)
+            return@runBlocking -1
         }
-        println("${fileToBeIndexed.canonicalPath} loaded")
-        return 0
     }
 }
