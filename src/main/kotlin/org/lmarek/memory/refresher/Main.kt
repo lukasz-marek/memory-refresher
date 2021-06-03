@@ -2,10 +2,7 @@ package org.lmarek.memory.refresher
 
 import org.apache.lucene.analysis.Analyzer
 import org.apache.lucene.analysis.standard.StandardAnalyzer
-import org.apache.lucene.index.DirectoryReader
-import org.apache.lucene.index.IndexReader
-import org.apache.lucene.index.IndexWriter
-import org.apache.lucene.index.IndexWriterConfig
+import org.apache.lucene.index.*
 import org.apache.lucene.search.IndexSearcher
 import org.apache.lucene.store.FSDirectory
 import org.koin.core.component.KoinApiExtension
@@ -39,9 +36,8 @@ fun main(args: Array<String>) {
 private fun initDependencies() {
     val luceneModule = module {
         single { createIndexWriter() }
-        factory { createIndexReader() }
         single<Analyzer> { StandardAnalyzer() }
-        factory { { IndexSearcher(createIndexReader()) } }
+        factory { { createIndexSearcher(createIndexReader()) } }
     }
     val repositoryModule = module {
         single<PathsReadOnlyRepository> { LucenePathsReadOnlyRepository(get(), get()) }
@@ -55,6 +51,9 @@ private fun initDependencies() {
         modules(luceneModule, repositoryModule, serviceModule)
     }
 }
+
+private fun createIndexSearcher(indexReader: IndexReader?): IndexSearcher? =
+    if (indexReader == null) null else IndexSearcher(indexReader)
 
 private fun getIndexDirectoryPath(): String {
     val homeDir = System.getProperty("user.home")
@@ -76,6 +75,8 @@ private fun createIndexWriter(): IndexWriter {
     return IndexWriter(directory, indexWriterConfig)
 }
 
-private fun createIndexReader(): IndexReader {
-    return DirectoryReader.open(FSDirectory.open(Paths.get(getIndexDirectoryPath())))
+private fun createIndexReader(): IndexReader? = try {
+    DirectoryReader.open(FSDirectory.open(Paths.get(getIndexDirectoryPath())))
+} catch (indexNotExists: IndexNotFoundException) {
+    null
 }
