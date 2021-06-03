@@ -1,9 +1,9 @@
 package org.lmarek.memory.refresher.document.find
 
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
-import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.withContext
 import org.apache.lucene.analysis.Analyzer
@@ -32,13 +32,14 @@ class LucenePathsReadOnlyRepository(
     }
 
     private suspend fun find(query: Query, limit: Int): Flow<DocumentPath> {
-        // IO to make sure there is always a thread available in case of blocking calls
-        return withContext(Dispatchers.IO) {
-            // fresh instance for each search to make sure we get fresh results
-            val indexSearcher = indexSearcherProvider() ?: return@withContext emptyFlow()
-
-            flow {
-                val firstPage = indexSearcher.search(query, min(resultsPerPage, limit))
+        // fresh instance for each search to make sure we get fresh results
+        val indexSearcherAsync = withContext(Dispatchers.IO) {
+            async { indexSearcherProvider() }
+        }
+        return flow {
+            val indexSearcher = indexSearcherAsync.await()
+            if (indexSearcher != null) {
+                val firstPage = withContext(Dispatchers.IO) { indexSearcher.search(query, min(resultsPerPage, limit)) }
                 firstPage.scoreDocs.forEach { emit(indexSearcher.fetchPath(it)) }
                 if (shouldFetchMultiplePages(firstPage, limit)) {
                     val remaining = limit - firstPage.scoreDocs.size
@@ -77,8 +78,8 @@ class LucenePathsReadOnlyRepository(
     }
 
 
-    private fun IndexSearcher.fetchMore(last: ScoreDoc, query: Query, limit: Int): Array<ScoreDoc> {
-        val page = searchAfter(last, query, limit)
+    private suspend fun IndexSearcher.fetchMore(last: ScoreDoc, query: Query, limit: Int): Array<ScoreDoc> {
+        val page = withContext(Dispatchers.IO) { searchAfter(last, query, limit) }
         return page.scoreDocs
     }
 
