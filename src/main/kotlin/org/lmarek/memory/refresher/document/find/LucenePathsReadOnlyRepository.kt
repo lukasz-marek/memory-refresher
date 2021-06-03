@@ -3,6 +3,7 @@ package org.lmarek.memory.refresher.document.find
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.withContext
 import org.apache.lucene.analysis.Analyzer
@@ -16,7 +17,7 @@ private const val CONTENT_FIELD = "content"
 
 class LucenePathsReadOnlyRepository(
     analyzer: Analyzer,
-    private val indexSearcherProvider: () -> IndexSearcher
+    private val indexSearcherProvider: () -> IndexSearcher?
 ) : PathsReadOnlyRepository {
     private val queryParser = QueryParser(CONTENT_FIELD, analyzer)
     private val resultsPerPage = 5
@@ -31,9 +32,10 @@ class LucenePathsReadOnlyRepository(
     }
 
     private suspend fun find(query: Query, limit: Int): Flow<DocumentPath> {
-        return withContext(Dispatchers.IO) { // IO to make sure there is always a thread available in case of blocking calls
-            val indexSearcher =
-                indexSearcherProvider() // fresh instance for each search to make sure we get fresh results
+        // IO to make sure there is always a thread available in case of blocking calls
+        return withContext(Dispatchers.IO) {
+            // fresh instance for each search to make sure we get fresh results
+            val indexSearcher = indexSearcherProvider() ?: return@withContext emptyFlow()
 
             flow {
                 val firstPage = indexSearcher.search(query, min(resultsPerPage, limit))

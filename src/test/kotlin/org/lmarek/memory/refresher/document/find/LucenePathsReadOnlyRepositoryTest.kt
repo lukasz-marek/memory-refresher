@@ -58,6 +58,22 @@ class LucenePathsReadOnlyRepositoryTest {
             expectThat(results).hasSize(count)
                 .and { get { toSet() }.hasSize(count) }
         }
+
+        @Test
+        fun `should return none when index searcher is null`() = runBlocking<Unit> {
+            // given
+            for (i in 1..10) {
+                pathsWriteOnlyRepository.register(Document(DocumentPath("/document_$i"), "match"))
+            }
+            val tested =
+                LucenePathsReadOnlyRepository(createAnalyzer()) { null }
+
+            // when
+            val results = tested.listAll().toList()
+
+            // then
+            expectThat(results).isEmpty()
+        }
     }
 
     @Nested
@@ -144,6 +160,21 @@ class LucenePathsReadOnlyRepositoryTest {
             expectThat(results).hasSize(5)
                 .and { get { toSet() }.hasSize(5) }
         }
-    }
 
+        @Test
+        fun `should return none when index searcher is null`() = runBlocking<Unit> {
+            // given
+            for (i in 1..10) {
+                pathsWriteOnlyRepository.register(Document(DocumentPath("/document_$i"), "match"))
+            }
+            val tested =
+                LucenePathsReadOnlyRepository(createAnalyzer()) { null }
+
+            // when
+            val results = tested.listAll().toList()
+
+            // then
+            expectThat(results).isEmpty()
+        }
+    }
 }
