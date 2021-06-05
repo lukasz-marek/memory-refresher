@@ -1,4 +1,4 @@
-package org.lmarek.memory.refresher.document.refresh
+package org.lmarek.memory.refresher.document.service.refresh
 
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.toList
@@ -10,12 +10,12 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
-import org.lmarek.memory.refresher.document.find.LucenePathsReadOnlyRepository
-import org.lmarek.memory.refresher.document.find.PathsReadOnlyRepository
-import org.lmarek.memory.refresher.document.loader.DocumentLoader
-import org.lmarek.memory.refresher.document.loader.DocumentLoaderImpl
-import org.lmarek.memory.refresher.document.register.LucenePathsWriteOnlyRepository
-import org.lmarek.memory.refresher.document.register.PathsWriteOnlyRepository
+import org.lmarek.memory.refresher.document.repository.read.LucenePathsReadOnlyRepository
+import org.lmarek.memory.refresher.document.repository.read.PathsReadOnlyRepository
+import org.lmarek.memory.refresher.document.service.loader.DocumentLoader
+import org.lmarek.memory.refresher.document.service.loader.DocumentLoaderImpl
+import org.lmarek.memory.refresher.document.repository.write.LucenePathsWriteOnlyRepository
+import org.lmarek.memory.refresher.document.repository.write.PathsWriteOnlyRepository
 import strikt.api.expectThat
 import strikt.assertions.all
 import strikt.assertions.hasSize

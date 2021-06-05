@@ -1,4 +1,4 @@
-package org.lmarek.memory.refresher.document.find
+package org.lmarek.memory.refresher.document.repository.read
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async

@@ -6,8 +6,8 @@ import kotlinx.coroutines.runBlocking
 import org.koin.core.component.KoinApiExtension
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
-import org.lmarek.memory.refresher.document.refresh.RefreshDocumentsService
-import org.lmarek.memory.refresher.document.refresh.RefreshType
+import org.lmarek.memory.refresher.document.service.refresh.RefreshDocumentsService
+import org.lmarek.memory.refresher.document.service.refresh.RefreshType
 import picocli.CommandLine
 import java.util.concurrent.Callable
 

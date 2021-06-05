@@ -1,4 +1,4 @@
-package org.lmarek.memory.refresher.document.loader
+package org.lmarek.memory.refresher.document.service.loader
 
 import org.lmarek.memory.refresher.document.Document
 import java.io.File

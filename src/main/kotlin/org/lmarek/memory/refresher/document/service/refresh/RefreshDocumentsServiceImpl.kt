@@ -1,4 +1,4 @@
-package org.lmarek.memory.refresher.document.refresh
+package org.lmarek.memory.refresher.document.service.refresh
 
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
@@ -6,9 +6,9 @@ import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.flow.*
 import org.lmarek.memory.refresher.document.Document
 import org.lmarek.memory.refresher.document.DocumentPath
-import org.lmarek.memory.refresher.document.find.PathsReadOnlyRepository
-import org.lmarek.memory.refresher.document.loader.DocumentLoader
-import org.lmarek.memory.refresher.document.register.PathsWriteOnlyRepository
+import org.lmarek.memory.refresher.document.repository.read.PathsReadOnlyRepository
+import org.lmarek.memory.refresher.document.repository.write.PathsWriteOnlyRepository
+import org.lmarek.memory.refresher.document.service.loader.DocumentLoader
 import java.io.File
 
 class RefreshDocumentsServiceImpl(

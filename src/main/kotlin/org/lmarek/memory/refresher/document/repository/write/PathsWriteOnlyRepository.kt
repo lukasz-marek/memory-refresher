@@ -1,4 +1,4 @@
-package org.lmarek.memory.refresher.document.register
+package org.lmarek.memory.refresher.document.repository.write
 
 import kotlinx.coroutines.flow.Flow
 import org.lmarek.memory.refresher.document.Document

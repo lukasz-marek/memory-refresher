@@ -5,7 +5,7 @@ import org.koin.core.component.KoinApiExtension
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.lmarek.memory.refresher.document.DocumentPath
-import org.lmarek.memory.refresher.document.register.PathsWriteOnlyRepository
+import org.lmarek.memory.refresher.document.repository.write.PathsWriteOnlyRepository
 import picocli.CommandLine
 import java.io.File
 import java.util.concurrent.Callable

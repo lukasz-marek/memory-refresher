@@ -1,4 +1,4 @@
-package org.lmarek.memory.refresher.document.find
+package org.lmarek.memory.refresher.document.repository.read
 
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
@@ -12,8 +12,8 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 import org.lmarek.memory.refresher.document.Document
 import org.lmarek.memory.refresher.document.DocumentPath
-import org.lmarek.memory.refresher.document.register.LucenePathsWriteOnlyRepository
-import org.lmarek.memory.refresher.document.register.PathsWriteOnlyRepository
+import org.lmarek.memory.refresher.document.repository.write.LucenePathsWriteOnlyRepository
+import org.lmarek.memory.refresher.document.repository.write.PathsWriteOnlyRepository
 import strikt.api.expectThat
 import strikt.assertions.hasSize
 import strikt.assertions.isEmpty

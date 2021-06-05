@@ -5,8 +5,8 @@ import kotlinx.coroutines.runBlocking
 import org.koin.core.component.KoinApiExtension
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
-import org.lmarek.memory.refresher.document.find.DocumentQuery
-import org.lmarek.memory.refresher.document.find.PathsReadOnlyRepository
+import org.lmarek.memory.refresher.document.repository.read.DocumentQuery
+import org.lmarek.memory.refresher.document.repository.read.PathsReadOnlyRepository
 import picocli.CommandLine
 import java.util.concurrent.Callable
 
