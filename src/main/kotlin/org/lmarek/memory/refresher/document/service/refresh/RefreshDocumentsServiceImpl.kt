@@ -2,6 +2,7 @@ package org.lmarek.memory.refresher.document.service.refresh
 
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.flow.*
 import org.lmarek.memory.refresher.document.Document
 import org.lmarek.memory.refresher.document.DocumentPath
@@ -37,12 +38,10 @@ class RefreshDocumentsServiceImpl(
     @ExperimentalCoroutinesApi
     private fun delete(pathsToDelete: Channel<DocumentPath>): Flow<RefreshResult> = channelFlow {
         coroutineScope {
-            val results = Channel<RefreshResult>(channelCapacity)
             launch {
                 writeOnlyRepository.delete(pathsToDelete.consumeAsFlow().onEach {
                     send(RefreshResult(it, RefreshType.DELETE))
                 })
-                results.close()
             }
         }
     }
@@ -50,20 +49,18 @@ class RefreshDocumentsServiceImpl(
     @ExperimentalCoroutinesApi
     private fun reload(pathsToReload: Channel<Document>): Flow<RefreshResult> = channelFlow {
         coroutineScope {
-            val results = Channel<RefreshResult>(channelCapacity)
             launch {
                 writeOnlyRepository.save(pathsToReload.consumeAsFlow().onEach {
                     send(RefreshResult(it.path, RefreshType.RELOAD))
                 })
-                results.close()
             }
         }
     }
 
     private suspend fun splitDocumentPaths(
         allDocuments: Flow<DocumentPath>,
-        toDelete: Channel<DocumentPath>,
-        toReload: Channel<Document>
+        toDelete: SendChannel<DocumentPath>,
+        toReload: SendChannel<Document>
     ) {
         coroutineScope {
             allDocuments.collect { path ->
