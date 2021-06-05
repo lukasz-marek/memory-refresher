@@ -72,6 +72,7 @@ private fun createIndexWriter(): IndexWriter {
     val analyzer = StandardAnalyzer()
     val indexWriterConfig = IndexWriterConfig(analyzer)
     indexWriterConfig.openMode = IndexWriterConfig.OpenMode.CREATE_OR_APPEND
+    indexWriterConfig.ramBufferSizeMB = 128.0
     return IndexWriter(directory, indexWriterConfig)
 }
 
