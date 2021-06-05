@@ -20,18 +20,16 @@ class RefreshDocumentsServiceImpl(
     private val channelCapacity = 10
 
     @ExperimentalCoroutinesApi
-    override suspend fun refreshAll(): Flow<RefreshResult> {
-        return flow {
-            coroutineScope {
-                val allDocuments = readOnlyRepository.listAll()
+    override suspend fun refreshAll(): Flow<RefreshResult> = channelFlow {
+        coroutineScope {
+            val allDocuments = readOnlyRepository.listAll()
 
-                val pathsToDelete = Channel<DocumentPath>(channelCapacity)
-                val pathsToReload = Channel<Document>(channelCapacity)
-                launch { splitDocumentPaths(allDocuments, pathsToDelete, pathsToReload) }
+            val pathsToDelete = Channel<DocumentPath>(channelCapacity)
+            val pathsToReload = Channel<Document>(channelCapacity)
 
-                val results = merge(delete(pathsToDelete), reload(pathsToReload))
-                results.collect { emit(it) }
-            }
+            launch { splitDocumentPaths(allDocuments, pathsToDelete, pathsToReload) }
+            launch { delete(pathsToDelete).collect { send(it) } }
+            launch { reload(pathsToReload).collect { send(it) } }
         }
     }
 
