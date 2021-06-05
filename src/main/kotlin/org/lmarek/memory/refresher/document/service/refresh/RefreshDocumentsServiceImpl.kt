@@ -2,7 +2,6 @@ package org.lmarek.memory.refresher.document.service.refresh
 
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.flow.*
 import org.lmarek.memory.refresher.document.Document
 import org.lmarek.memory.refresher.document.DocumentPath
@@ -35,29 +34,29 @@ class RefreshDocumentsServiceImpl(
         }
     }
 
-    private fun unregister(pathsToDelete: Channel<DocumentPath>): Flow<RefreshResult> = flow {
+    @ExperimentalCoroutinesApi
+    private fun unregister(pathsToDelete: Channel<DocumentPath>): Flow<RefreshResult> = channelFlow {
         coroutineScope {
             val results = Channel<RefreshResult>(channelCapacity)
             launch {
                 writeOnlyRepository.unregister(pathsToDelete.consumeAsFlow().onEach {
-                    results.send(RefreshResult(it, RefreshType.DELETE))
+                    send(RefreshResult(it, RefreshType.DELETE))
                 })
                 results.close()
             }
-            results.consumeEach { emit(it) }
         }
     }
 
-    private fun reload(pathsToReload: Channel<Document>): Flow<RefreshResult> = flow {
+    @ExperimentalCoroutinesApi
+    private fun reload(pathsToReload: Channel<Document>): Flow<RefreshResult> = channelFlow {
         coroutineScope {
             val results = Channel<RefreshResult>(channelCapacity)
             launch {
                 writeOnlyRepository.register(pathsToReload.consumeAsFlow().onEach {
-                    results.send(RefreshResult(it.path, RefreshType.RELOAD))
+                    send(RefreshResult(it.path, RefreshType.RELOAD))
                 })
                 results.close()
             }
-            results.consumeEach { emit(it) }
         }
     }
 
