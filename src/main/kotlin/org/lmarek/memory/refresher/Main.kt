@@ -35,7 +35,7 @@ fun main(args: Array<String>) {
 
 private fun initDependencies() {
     val luceneModule = module {
-        single { createIndexWriter() }
+        single { createIndexWriter(get()) }
         single<Analyzer> { StandardAnalyzer() }
         factory { { createIndexSearcher(createIndexReader()) } }
     }
@@ -67,7 +67,7 @@ private fun createIndexDirectoryIfNotExists() {
         throw CommandException("Cannot read or write to ${indexDirectory.canonicalPath}")
 }
 
-private fun createIndexWriter(): IndexWriter {
+private fun createIndexWriter(analyzer: Analyzer): IndexWriter {
     val directory = FSDirectory.open(Paths.get(getIndexDirectoryPath()))
     val analyzer = StandardAnalyzer()
     val indexWriterConfig = IndexWriterConfig(analyzer)
