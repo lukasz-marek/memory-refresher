@@ -28,18 +28,18 @@ class RefreshDocumentsServiceImpl(
                 val pathsToReload = Channel<Document>(channelCapacity)
                 launch { splitDocumentPaths(allDocuments, pathsToDelete, pathsToReload) }
 
-                val results = merge(unregister(pathsToDelete), reload(pathsToReload))
+                val results = merge(delete(pathsToDelete), reload(pathsToReload))
                 results.collect { emit(it) }
             }
         }
     }
 
     @ExperimentalCoroutinesApi
-    private fun unregister(pathsToDelete: Channel<DocumentPath>): Flow<RefreshResult> = channelFlow {
+    private fun delete(pathsToDelete: Channel<DocumentPath>): Flow<RefreshResult> = channelFlow {
         coroutineScope {
             val results = Channel<RefreshResult>(channelCapacity)
             launch {
-                writeOnlyRepository.unregister(pathsToDelete.consumeAsFlow().onEach {
+                writeOnlyRepository.delete(pathsToDelete.consumeAsFlow().onEach {
                     send(RefreshResult(it, RefreshType.DELETE))
                 })
                 results.close()
@@ -52,7 +52,7 @@ class RefreshDocumentsServiceImpl(
         coroutineScope {
             val results = Channel<RefreshResult>(channelCapacity)
             launch {
-                writeOnlyRepository.register(pathsToReload.consumeAsFlow().onEach {
+                writeOnlyRepository.save(pathsToReload.consumeAsFlow().onEach {
                     send(RefreshResult(it.path, RefreshType.RELOAD))
                 })
                 results.close()

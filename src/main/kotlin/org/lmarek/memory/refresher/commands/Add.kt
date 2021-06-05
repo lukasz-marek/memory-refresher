@@ -22,7 +22,7 @@ class Add : Callable<Int>, KoinComponent {
     override fun call(): Int = runBlocking {
         try {
             val newDocument = documentLoader.load(fileToBeIndexed)
-            writeOnlyRepository.register(newDocument)
+            writeOnlyRepository.save(newDocument)
             println("${fileToBeIndexed.canonicalPath} loaded")
             return@runBlocking 0
         } catch (ex: DocumentLoader.DocumentLoaderException) {

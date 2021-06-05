@@ -28,7 +28,7 @@ class LucenePathsWriteOnlyRepositoryTest {
             val document = Document(DocumentPath("/path/to/file"), "this is content of a document")
 
             // when
-            tested.register(document)
+            tested.save(document)
 
             // then
             val indexReader = createIndexReader(tempDir)
@@ -44,9 +44,9 @@ class LucenePathsWriteOnlyRepositoryTest {
                 val document = Document(DocumentPath("/path/to/file"), "this is content of a document")
 
                 // when
-                tested.register(document)
+                tested.save(document)
                 for (i in 1..10) {
-                    tested.register(document.copy(content = i.toString()))
+                    tested.save(document.copy(content = i.toString()))
                 }
 
                 // then
@@ -63,7 +63,7 @@ class LucenePathsWriteOnlyRepositoryTest {
 
                 // when
                 for (i in 1..10) {
-                    tested.register(Document(DocumentPath("/path/to/document$i"), "identical content"))
+                    tested.save(Document(DocumentPath("/path/to/document$i"), "identical content"))
                 }
 
                 // then
@@ -83,7 +83,7 @@ class LucenePathsWriteOnlyRepositoryTest {
             val path = DocumentPath("/does/not/exist")
 
             // when / then
-            tested.unregister(path) // should not throw
+            tested.delete(path) // should not throw
         }
 
         @Test
@@ -94,8 +94,8 @@ class LucenePathsWriteOnlyRepositoryTest {
             val path = DocumentPath("/does/not/exist")
 
             // when / then
-            tested.unregister(path) // should not throw
-            tested.unregister(path) // should not throw
+            tested.delete(path) // should not throw
+            tested.delete(path) // should not throw
         }
 
         @Test
@@ -106,8 +106,8 @@ class LucenePathsWriteOnlyRepositoryTest {
             val document = Document(DocumentPath("/path/to/file"), "this is content of a document")
 
             // when
-            tested.register(document)
-            tested.unregister(document.path)
+            tested.save(document)
+            tested.delete(document.path)
 
             // then
             val indexReader = createIndexReader(tempDir)
@@ -125,7 +125,7 @@ class LucenePathsWriteOnlyRepositoryTest {
             val tested = LucenePathsWriteOnlyRepository(indexWriter)
             val documentPaths = (1..100).map { DocumentPath("/path/to/document$it") }
             for (path in documentPaths) {
-                tested.register(Document(path, "identical content"))
+                tested.save(Document(path, "identical content"))
             }
             val toRemove = flow {
                 for (documentPath in documentPaths.take(21)) {
@@ -134,7 +134,7 @@ class LucenePathsWriteOnlyRepositoryTest {
             }
 
             // when
-            tested.unregister(toRemove)
+            tested.delete(toRemove)
 
             // then
             val indexReader = createIndexReader(tempDir)
@@ -161,7 +161,7 @@ class LucenePathsWriteOnlyRepositoryTest {
             }
 
             // when
-            tested.register(toRegister)
+            tested.save(toRegister)
 
             // then
             val indexReader = createIndexReader(tempDir)

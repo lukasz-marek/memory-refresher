@@ -46,7 +46,7 @@ class LucenePathsReadOnlyRepositoryTest {
         fun `should return all documents`(count: Int) = runBlocking<Unit> {
             // given
             for (i in 1..count) {
-                pathsWriteOnlyRepository.register(Document(DocumentPath("/document_$i"), "match"))
+                pathsWriteOnlyRepository.save(Document(DocumentPath("/document_$i"), "match"))
             }
             val tested =
                 LucenePathsReadOnlyRepository(createAnalyzer()) { IndexSearcher(createIndexReader(tempDir)) }
@@ -63,7 +63,7 @@ class LucenePathsReadOnlyRepositoryTest {
         fun `should return none when index searcher is null`() = runBlocking<Unit> {
             // given
             for (i in 1..10) {
-                pathsWriteOnlyRepository.register(Document(DocumentPath("/document_$i"), "match"))
+                pathsWriteOnlyRepository.save(Document(DocumentPath("/document_$i"), "match"))
             }
             val tested =
                 LucenePathsReadOnlyRepository(createAnalyzer()) { null }
@@ -83,13 +83,13 @@ class LucenePathsReadOnlyRepositoryTest {
         @ValueSource(strings = ["name", "empty"])
         fun `should find a single matching document`(queryValue: String) = runBlocking<Unit> {
             // given
-            pathsWriteOnlyRepository.register(
+            pathsWriteOnlyRepository.save(
                 Document(
                     path = DocumentPath("/document/with/name"),
                     content = "I have name inside"
                 )
             )
-            pathsWriteOnlyRepository.register(
+            pathsWriteOnlyRepository.save(
                 Document(
                     path = DocumentPath("/document/with/empty"),
                     content = "I'm empty"
@@ -112,7 +112,7 @@ class LucenePathsReadOnlyRepositoryTest {
         @Test
         fun `should return empty list for unmatched document`() = runBlocking<Unit> {
             // given
-            pathsWriteOnlyRepository.register(Document(DocumentPath("/unmatched"), ""))
+            pathsWriteOnlyRepository.save(Document(DocumentPath("/unmatched"), ""))
             val tested =
                 LucenePathsReadOnlyRepository(createAnalyzer()) { IndexSearcher(createIndexReader(tempDir)) }
             val query = DocumentQuery("nothing", 1)
@@ -129,7 +129,7 @@ class LucenePathsReadOnlyRepositoryTest {
         fun `should return some out of 100 existing unique documents`(count: Int) = runBlocking<Unit> {
             // given
             for (i in 1..100) {
-                pathsWriteOnlyRepository.register(Document(DocumentPath("/document_$i"), "match"))
+                pathsWriteOnlyRepository.save(Document(DocumentPath("/document_$i"), "match"))
             }
             val tested =
                 LucenePathsReadOnlyRepository(createAnalyzer()) { IndexSearcher(createIndexReader(tempDir)) }
@@ -147,7 +147,7 @@ class LucenePathsReadOnlyRepositoryTest {
         fun `shouldn't fail when there are fewer documents than requested`() = runBlocking<Unit> {
             // given
             for (i in 1..5) {
-                pathsWriteOnlyRepository.register(Document(DocumentPath("/document_$i"), "match"))
+                pathsWriteOnlyRepository.save(Document(DocumentPath("/document_$i"), "match"))
             }
             val tested =
                 LucenePathsReadOnlyRepository(createAnalyzer()) { IndexSearcher(createIndexReader(tempDir)) }
@@ -165,7 +165,7 @@ class LucenePathsReadOnlyRepositoryTest {
         fun `should return none when index searcher is null`() = runBlocking<Unit> {
             // given
             for (i in 1..10) {
-                pathsWriteOnlyRepository.register(Document(DocumentPath("/document_$i"), "match"))
+                pathsWriteOnlyRepository.save(Document(DocumentPath("/document_$i"), "match"))
             }
             val tested =
                 LucenePathsReadOnlyRepository(createAnalyzer()) { null }

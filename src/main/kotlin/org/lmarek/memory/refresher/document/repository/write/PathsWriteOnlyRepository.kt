@@ -5,8 +5,8 @@ import org.lmarek.memory.refresher.document.Document
 import org.lmarek.memory.refresher.document.DocumentPath
 
 interface PathsWriteOnlyRepository {
-    suspend fun register(document: Document)
-    suspend fun register(documents: Flow<Document>)
-    suspend fun unregister(path: DocumentPath)
-    suspend fun unregister(paths: Flow<DocumentPath>)
+    suspend fun save(document: Document)
+    suspend fun save(documents: Flow<Document>)
+    suspend fun delete(path: DocumentPath)
+    suspend fun delete(paths: Flow<DocumentPath>)
 }

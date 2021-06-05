@@ -20,7 +20,7 @@ class Remove : Callable<Int>, KoinComponent {
 
     override fun call(): Int {
         runBlocking {
-            writeOnlyRepository.unregister(DocumentPath(fileToBeRemovedFromIndex.canonicalPath))
+            writeOnlyRepository.delete(DocumentPath(fileToBeRemovedFromIndex.canonicalPath))
         }
         println("${fileToBeRemovedFromIndex.canonicalPath} removed")
         return 0

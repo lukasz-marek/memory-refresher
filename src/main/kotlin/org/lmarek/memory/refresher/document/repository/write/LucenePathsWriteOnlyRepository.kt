@@ -19,7 +19,7 @@ private const val CONTENT_FIELD = "content"
 
 class LucenePathsWriteOnlyRepository(private val indexWriter: IndexWriter) : PathsWriteOnlyRepository {
 
-    override suspend fun register(document: Document) {
+    override suspend fun save(document: Document) {
         withContext(Dispatchers.IO) {
             registerOne(document)
             yield()
@@ -27,7 +27,7 @@ class LucenePathsWriteOnlyRepository(private val indexWriter: IndexWriter) : Pat
         }
     }
 
-    override suspend fun register(documents: Flow<Document>) {
+    override suspend fun save(documents: Flow<Document>) {
         withContext(Dispatchers.IO) {
             documents.collect {
                 registerOne(it)
@@ -37,7 +37,7 @@ class LucenePathsWriteOnlyRepository(private val indexWriter: IndexWriter) : Pat
         }
     }
 
-    override suspend fun unregister(paths: Flow<DocumentPath>) {
+    override suspend fun delete(paths: Flow<DocumentPath>) {
         withContext(Dispatchers.IO) {
             paths.collect {
                 unregisterOne(it)
@@ -47,7 +47,7 @@ class LucenePathsWriteOnlyRepository(private val indexWriter: IndexWriter) : Pat
         }
     }
 
-    override suspend fun unregister(path: DocumentPath) {
+    override suspend fun delete(path: DocumentPath) {
         withContext(Dispatchers.IO) {
             unregisterOne(path)
             yield()

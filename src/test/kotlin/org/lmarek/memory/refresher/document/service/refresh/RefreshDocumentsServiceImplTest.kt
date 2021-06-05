@@ -59,7 +59,7 @@ class RefreshDocumentsServiceImplTest {
         for (i in 1..10) {
             val path = tempDir.resolve("file_$i.txt")
             Files.write(path, listOf("content_$i"))
-            writeOnlyRepository.register(documentLoader.load(path.toFile()))
+            writeOnlyRepository.save(documentLoader.load(path.toFile()))
         }
 
         // when
@@ -78,7 +78,7 @@ class RefreshDocumentsServiceImplTest {
         for (i in 1..10) {
             val path = tempDir.resolve("file_$i.txt")
             Files.write(path, listOf("content_$i"))
-            writeOnlyRepository.register(documentLoader.load(path.toFile()))
+            writeOnlyRepository.save(documentLoader.load(path.toFile()))
             path.deleteIfExists()
         }
 
@@ -98,12 +98,12 @@ class RefreshDocumentsServiceImplTest {
         for (i in 1..7) {
             val path = tempDir.resolve("file_$i.txt")
             Files.write(path, listOf("content_$i"))
-            writeOnlyRepository.register(documentLoader.load(path.toFile()))
+            writeOnlyRepository.save(documentLoader.load(path.toFile()))
         }
         for (i in 8..15) {
             val path = tempDir.resolve("file_$i.txt")
             Files.write(path, listOf("content_$i"))
-            writeOnlyRepository.register(documentLoader.load(path.toFile()))
+            writeOnlyRepository.save(documentLoader.load(path.toFile()))
             path.deleteIfExists()
         }
 
