@@ -12,10 +12,10 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import org.lmarek.memory.refresher.document.repository.read.LucenePathsReadOnlyRepository
 import org.lmarek.memory.refresher.document.repository.read.PathsReadOnlyRepository
-import org.lmarek.memory.refresher.document.service.loader.DocumentLoader
-import org.lmarek.memory.refresher.document.service.loader.DocumentLoaderImpl
 import org.lmarek.memory.refresher.document.repository.write.LucenePathsWriteOnlyRepository
 import org.lmarek.memory.refresher.document.repository.write.PathsWriteOnlyRepository
+import org.lmarek.memory.refresher.document.service.loader.DocumentLoader
+import org.lmarek.memory.refresher.document.service.loader.DocumentLoaderImpl
 import strikt.api.expectThat
 import strikt.assertions.all
 import strikt.assertions.hasSize
