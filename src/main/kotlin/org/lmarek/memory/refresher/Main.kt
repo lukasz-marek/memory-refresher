@@ -15,9 +15,9 @@ import org.lmarek.memory.refresher.document.repository.read.PathsReadOnlyReposit
 import org.lmarek.memory.refresher.document.repository.write.LucenePathsWriteOnlyRepository
 import org.lmarek.memory.refresher.document.repository.write.PathsWriteOnlyRepository
 import org.lmarek.memory.refresher.document.service.loader.DocumentLoader
-import org.lmarek.memory.refresher.document.service.loader.DocumentLoaderImpl
+import org.lmarek.memory.refresher.document.service.loader.CanonicalPathResolvingDocumentLoader
 import org.lmarek.memory.refresher.document.service.refresh.RefreshDocumentsService
-import org.lmarek.memory.refresher.document.service.refresh.RefreshDocumentsServiceImpl
+import org.lmarek.memory.refresher.document.service.refresh.ConcurrentRefreshDocumentsService
 import picocli.CommandLine
 import java.io.File
 import java.nio.file.Paths
@@ -44,8 +44,8 @@ private fun initDependencies() {
         single<PathsWriteOnlyRepository> { LucenePathsWriteOnlyRepository(get()) }
     }
     val serviceModule = module {
-        single<DocumentLoader> { DocumentLoaderImpl() }
-        single<RefreshDocumentsService> { RefreshDocumentsServiceImpl(get(), get(), get()) }
+        single<DocumentLoader> { CanonicalPathResolvingDocumentLoader() }
+        single<RefreshDocumentsService> { ConcurrentRefreshDocumentsService(get(), get(), get()) }
     }
     startKoin {
         modules(luceneModule, repositoryModule, serviceModule)

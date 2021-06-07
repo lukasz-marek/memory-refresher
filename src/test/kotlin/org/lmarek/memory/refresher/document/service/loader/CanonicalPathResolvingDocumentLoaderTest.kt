@@ -11,9 +11,9 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 
-class DocumentLoaderImplTest {
+class CanonicalPathResolvingDocumentLoaderTest {
 
-    private val tested = DocumentLoaderImpl()
+    private val tested = CanonicalPathResolvingDocumentLoader()
 
     @Test
     fun `should load file into a document if it exists`(@TempDir tempDir: Path) = runBlocking<Unit> {

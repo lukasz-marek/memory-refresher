@@ -15,7 +15,7 @@ import org.lmarek.memory.refresher.document.repository.read.PathsReadOnlyReposit
 import org.lmarek.memory.refresher.document.repository.write.LucenePathsWriteOnlyRepository
 import org.lmarek.memory.refresher.document.repository.write.PathsWriteOnlyRepository
 import org.lmarek.memory.refresher.document.service.loader.DocumentLoader
-import org.lmarek.memory.refresher.document.service.loader.DocumentLoaderImpl
+import org.lmarek.memory.refresher.document.service.loader.CanonicalPathResolvingDocumentLoader
 import strikt.api.expectThat
 import strikt.assertions.all
 import strikt.assertions.hasSize
@@ -27,7 +27,7 @@ import java.nio.file.Path
 import kotlin.io.path.deleteIfExists
 
 @ExperimentalCoroutinesApi
-class RefreshDocumentsServiceImplTest {
+class ConcurrentRefreshDocumentsServiceTest {
 
     @TempDir
     lateinit var tempDir: Path
@@ -40,12 +40,12 @@ class RefreshDocumentsServiceImplTest {
 
     @BeforeEach
     fun setup() {
-        documentLoader = DocumentLoaderImpl()
+        documentLoader = CanonicalPathResolvingDocumentLoader()
         indexWriter = createIndexWriter(tempDir)
         writeOnlyRepository = LucenePathsWriteOnlyRepository(indexWriter)
         readOnlyRepository =
             LucenePathsReadOnlyRepository(StandardAnalyzer()) { IndexSearcher(createIndexReader(tempDir)) }
-        tested = RefreshDocumentsServiceImpl(readOnlyRepository, writeOnlyRepository, documentLoader)
+        tested = ConcurrentRefreshDocumentsService(readOnlyRepository, writeOnlyRepository, documentLoader)
     }
 
     @AfterEach

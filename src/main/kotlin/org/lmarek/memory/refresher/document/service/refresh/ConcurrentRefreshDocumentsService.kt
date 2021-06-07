@@ -11,7 +11,7 @@ import org.lmarek.memory.refresher.document.repository.write.PathsWriteOnlyRepos
 import org.lmarek.memory.refresher.document.service.loader.DocumentLoader
 import java.io.File
 
-class RefreshDocumentsServiceImpl(
+class ConcurrentRefreshDocumentsService(
     private val readOnlyRepository: PathsReadOnlyRepository,
     private val writeOnlyRepository: PathsWriteOnlyRepository,
     private val documentLoader: DocumentLoader
