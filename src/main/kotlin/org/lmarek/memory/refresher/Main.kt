@@ -69,7 +69,6 @@ private fun createIndexDirectoryIfNotExists() {
 
 private fun createIndexWriter(analyzer: Analyzer): IndexWriter {
     val directory = FSDirectory.open(Paths.get(getIndexDirectoryPath()))
-    val analyzer = StandardAnalyzer()
     val indexWriterConfig = IndexWriterConfig(analyzer)
     indexWriterConfig.openMode = IndexWriterConfig.OpenMode.CREATE_OR_APPEND
     indexWriterConfig.ramBufferSizeMB = 128.0
