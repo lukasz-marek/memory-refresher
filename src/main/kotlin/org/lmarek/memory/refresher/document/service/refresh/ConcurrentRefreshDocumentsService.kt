@@ -8,7 +8,7 @@ import org.lmarek.memory.refresher.document.Document
 import org.lmarek.memory.refresher.document.DocumentPath
 import org.lmarek.memory.refresher.document.repository.read.PathsReadOnlyRepository
 import org.lmarek.memory.refresher.document.repository.write.PathsWriteOnlyRepository
-import org.lmarek.memory.refresher.document.service.loader.DocumentLoader
+import org.lmarek.memory.refresher.document.service.add.loader.DocumentLoader
 import java.io.File
 
 class ConcurrentRefreshDocumentsService(

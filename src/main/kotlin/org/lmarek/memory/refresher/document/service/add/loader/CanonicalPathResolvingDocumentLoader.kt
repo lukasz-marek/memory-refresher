@@ -1,4 +1,4 @@
-package org.lmarek.memory.refresher.document.service.loader
+package org.lmarek.memory.refresher.document.service.add.loader
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
