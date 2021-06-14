@@ -12,7 +12,7 @@ class PersistFileInRepositoryService(
         try {
             val newDocument = documentLoader.load(file)
             writeOnlyRepository.save(newDocument)
-        } catch (loaderException: PersistFileService.PersistFileServiceException) {
+        } catch (loaderException: DocumentLoader.DocumentLoaderException) {
             throw PersistFileService.PersistFileServiceException("Failed to persist file", loaderException)
         }
     }

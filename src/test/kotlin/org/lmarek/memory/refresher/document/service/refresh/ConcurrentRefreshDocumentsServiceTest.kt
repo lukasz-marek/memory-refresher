@@ -14,8 +14,8 @@ import org.lmarek.memory.refresher.document.repository.read.LucenePathsReadOnlyR
 import org.lmarek.memory.refresher.document.repository.read.PathsReadOnlyRepository
 import org.lmarek.memory.refresher.document.repository.write.LucenePathsWriteOnlyRepository
 import org.lmarek.memory.refresher.document.repository.write.PathsWriteOnlyRepository
-import org.lmarek.memory.refresher.document.service.add.loader.DocumentLoader
 import org.lmarek.memory.refresher.document.service.add.loader.CanonicalPathResolvingDocumentLoader
+import org.lmarek.memory.refresher.document.service.add.loader.DocumentLoader
 import strikt.api.expectThat
 import strikt.assertions.all
 import strikt.assertions.hasSize

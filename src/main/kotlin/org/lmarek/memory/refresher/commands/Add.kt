@@ -5,7 +5,6 @@ import org.koin.core.component.KoinApiExtension
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.lmarek.memory.refresher.document.service.add.PersistFileService
-import org.lmarek.memory.refresher.document.service.add.loader.DocumentLoader
 import picocli.CommandLine
 import java.io.File
 import java.util.concurrent.Callable
@@ -23,7 +22,7 @@ class Add : Callable<Int>, KoinComponent {
             service.persist(fileToBeIndexed)
             println("${fileToBeIndexed.canonicalPath} loaded")
             return@runBlocking 0
-        } catch (ex: DocumentLoader.DocumentLoaderException) {
+        } catch (ex: PersistFileService.PersistFileServiceException) {
             System.err.println(ex.message)
             return@runBlocking -1
         }
