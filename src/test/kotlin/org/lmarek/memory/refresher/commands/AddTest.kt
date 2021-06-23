@@ -32,7 +32,7 @@ class AddTest : CommandTestBase() {
     @Test
     fun `Should add a file by canonical path when it exists`(@TempDir directory: Path) {
         // given
-        val existingFilePath = hasExistingFile("file_that_exists", directory, listOf("first line", "second line"))
+        val existingFilePath = hasExistingFile("file_that_exists_1", directory, listOf("first line", "second line"))
         val realPath = existingFilePath.toRealPath()
 
         // when
@@ -47,7 +47,7 @@ class AddTest : CommandTestBase() {
     @Test
     fun `Should add a file by relative path when it exists`(@TempDir directory: Path) {
         // given
-        val existingFilePath = hasExistingFile("file_that_exists", directory, listOf("first line", "second line"))
+        val existingFilePath = hasExistingFile("file_that_exists_2", directory, listOf("first line", "second line"))
         val relativePath = Paths.get("").toAbsolutePath().relativize(existingFilePath)
 
         // when
