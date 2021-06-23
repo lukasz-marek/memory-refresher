@@ -16,13 +16,16 @@ import java.util.concurrent.Callable
 class Refresh : Callable<Int>, KoinComponent {
     private val refreshDocumentsService by inject<RefreshDocumentsService>()
 
+    @CommandLine.Spec
+    private lateinit var spec: CommandLine.Model.CommandSpec
+
     @ExperimentalCoroutinesApi
     override fun call(): Int {
         runBlocking {
             refreshDocumentsService.refreshAll().collect { refreshResult ->
                 when (refreshResult.type) {
-                    RefreshType.DELETE -> println("Deleted ${refreshResult.documentPath.value}")
-                    RefreshType.RELOAD -> println("Reloaded ${refreshResult.documentPath.value}")
+                    RefreshType.DELETE -> spec.commandLine().out.println("Deleted ${refreshResult.documentPath.value}")
+                    RefreshType.RELOAD -> spec.commandLine().out.println("Reloaded ${refreshResult.documentPath.value}")
                 }
             }
         }

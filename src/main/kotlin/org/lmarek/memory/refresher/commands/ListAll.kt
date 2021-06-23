@@ -14,10 +14,13 @@ import java.util.concurrent.Callable
 class ListAll : Callable<Int>, KoinComponent {
     private val readOnlyRepository by inject<PathsReadOnlyRepository>()
 
+    @CommandLine.Spec
+    private lateinit var spec: CommandLine.Model.CommandSpec
+
     override fun call(): Int {
         runBlocking {
             val searchResults = readOnlyRepository.listAll()
-            searchResults.collect { println(it.value) }
+            searchResults.collect { spec.commandLine().out.println(it.value) }
         }
         return 0
     }

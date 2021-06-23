@@ -18,11 +18,14 @@ class Find : Callable<Int>, KoinComponent {
     @CommandLine.Parameters(index = "0", description = ["search query"], arity = "1..*")
     private lateinit var query: List<String>
 
+    @CommandLine.Spec
+    private lateinit var spec: CommandLine.Model.CommandSpec
+
     override fun call(): Int {
         runBlocking {
             val documentQuery = DocumentQuery(query.joinToString(separator = " "), Int.MAX_VALUE)
             val searchResults = readOnlyRepository.findMatching(documentQuery)
-            searchResults.collect { println(it.value) }
+            searchResults.collect { spec.commandLine().out.println(it.value) }
         }
         return 0
     }

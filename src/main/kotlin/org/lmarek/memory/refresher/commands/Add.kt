@@ -21,7 +21,7 @@ class Add : Callable<Int>, KoinComponent {
     private lateinit var fileToBeIndexed: File
 
     @Spec
-    lateinit var spec: CommandSpec
+    private lateinit var spec: CommandSpec
 
     override fun call(): Int = runBlocking {
         try {

@@ -19,7 +19,7 @@ class Remove : Callable<Int>, KoinComponent {
     private lateinit var fileToBeRemovedFromIndex: File
 
     @CommandLine.Spec
-    lateinit var spec: CommandLine.Model.CommandSpec
+    private lateinit var spec: CommandLine.Model.CommandSpec
 
     override fun call(): Int {
         runBlocking {
