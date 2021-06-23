@@ -25,7 +25,6 @@ import kotlin.io.path.pathString
 
 fun createLuceneModule(): Module = module {
     val temporaryIndexDirectory = createTempDirectory().pathString
-    println(temporaryIndexDirectory)
     val indexDirectoryPath = getIndexDirectoryPath(temporaryIndexDirectory)
     createIndexDirectoryIfNotExists(indexDirectoryPath)
     single { createIndexWriter(get(), indexDirectoryPath) }
