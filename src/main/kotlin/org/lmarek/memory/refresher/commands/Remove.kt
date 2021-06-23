@@ -18,11 +18,14 @@ class Remove : Callable<Int>, KoinComponent {
     @CommandLine.Parameters(index = "0", description = ["File to be removed from index"])
     private lateinit var fileToBeRemovedFromIndex: File
 
+    @CommandLine.Spec
+    lateinit var spec: CommandLine.Model.CommandSpec
+
     override fun call(): Int {
         runBlocking {
             writeOnlyRepository.delete(DocumentPath(fileToBeRemovedFromIndex.canonicalPath))
         }
-        println("${fileToBeRemovedFromIndex.canonicalPath} removed")
+        spec.commandLine().out.println("${fileToBeRemovedFromIndex.canonicalPath} removed")
         return 0
     }
 }
