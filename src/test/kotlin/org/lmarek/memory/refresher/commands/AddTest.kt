@@ -11,7 +11,6 @@ import strikt.assertions.isEqualTo
 import strikt.assertions.isNotEmpty
 import java.io.PrintWriter
 import java.io.StringWriter
-import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.*
@@ -71,11 +70,4 @@ class AddTest : CommandTestBase() {
         expectThat(output.toString()).isEmpty()
         expectThat(errorOutput.toString()).isNotEmpty()
     }
-
-    private fun hasExistingFile(name: String, directory: Path, lines: List<String>): Path {
-        val existingFilePath = directory.resolve(name)
-        Files.write(existingFilePath, lines)
-        return existingFilePath
-    }
-
 }
