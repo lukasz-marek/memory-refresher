@@ -6,8 +6,11 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.lmarek.memory.refresher.document.service.add.PersistFileService
 import picocli.CommandLine
+import picocli.CommandLine.Model.CommandSpec
+import picocli.CommandLine.Spec
 import java.io.File
 import java.util.concurrent.Callable
+
 
 @KoinApiExtension
 @CommandLine.Command(name = "add")
@@ -17,13 +20,16 @@ class Add : Callable<Int>, KoinComponent {
     @CommandLine.Parameters(index = "0", description = ["File to be added to index"])
     private lateinit var fileToBeIndexed: File
 
+    @Spec
+    lateinit var spec: CommandSpec
+
     override fun call(): Int = runBlocking {
         try {
             service.persist(fileToBeIndexed)
-            println("${fileToBeIndexed.canonicalPath} loaded")
+            spec.commandLine().out.println("${fileToBeIndexed.canonicalPath} loaded")
             return@runBlocking 0
         } catch (ex: PersistFileService.PersistFileServiceException) {
-            System.err.println(ex.message)
+            spec.commandLine().err.println(ex.message)
             return@runBlocking -1
         }
     }
